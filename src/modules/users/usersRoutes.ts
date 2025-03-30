@@ -1,8 +1,8 @@
 import express from "express";
 const router = express.Router();
-import authController from "./usersController";
-import { authMiddleware } from "../middleware/auth";
-import upload from "../middleware/upload";
+import usersController from "./usersController";
+import { authMiddleware } from "../../middleware/auth";
+import upload from "../../middleware/upload";
 
 /**
 * @swagger
@@ -75,7 +75,7 @@ import upload from "../middleware/upload";
  *       500:
  *         description: Server error
  */
-router.post("/google", authController.googleSignIn);
+router.post("/google", usersController.googleSignIn);
 
 /**
  * @swagger
@@ -101,7 +101,7 @@ router.post("/google", authController.googleSignIn);
  *       500:
  *         description: Server error
  */
-router.post("/register", authController.register);
+router.post("/register", usersController.register);
 
 /**
  * @swagger
@@ -137,7 +137,7 @@ router.post("/register", authController.register);
  *       500:
  *         description: Server error
  */
-router.post("/login", authController.login);
+router.post("/login", usersController.login);
 
 /**
  * @swagger
@@ -174,7 +174,7 @@ router.post("/login", authController.login);
  *       500:
  *         description: Server error
  */
-router.post("/refresh", authController.refresh);
+router.post("/refresh", usersController.refresh);
 
 /**
  * @swagger
@@ -198,7 +198,7 @@ router.post("/refresh", authController.refresh);
  *       500:
  *         description: Server error
  */
-router.get("/user/:id?", authMiddleware, authController.getUserData);
+router.get("/user/:id?", authMiddleware, usersController.getUserData);
 
 /**
  * @swagger
@@ -242,7 +242,7 @@ router.get("/user/:id?", authMiddleware, authController.getUserData);
  *       500:
  *         description: Server error
  */
-router.get("/users", authMiddleware, authController.getUserByName);
+router.get("/users", authMiddleware, usersController.getUserByName);
 
 /**
  * @swagger
@@ -293,7 +293,7 @@ router.get("/users", authMiddleware, authController.getUserByName);
  *       500:
  *         description: Server error
  */
-router.put("/user/:id", authMiddleware, upload.single("profilePicture"), authController.updateUser);
+router.put("/user/:id", authMiddleware, upload.single("profilePicture"), usersController.updateUser);
 
 /**
  * @swagger
@@ -319,6 +319,6 @@ router.put("/user/:id", authMiddleware, upload.single("profilePicture"), authCon
  *       500:
  *         description: Server error
  */
-router.post("/logout", authController.logout);
+router.post("/logout", usersController.logout);
 
 export default router;
