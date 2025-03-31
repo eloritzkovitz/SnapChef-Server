@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import vision from '@google-cloud/vision';
-import ingredient from './ingredient';
 import { loadIngredientData } from '../../utils/ingredientData';
 
 const client = new vision.ImageAnnotatorClient();
