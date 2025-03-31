@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 
+// Handle ingredient recognition
 export const handleRecognition = async (req: Request, res: Response, type: string): Promise<void> => {
   console.log(`Received POST request at /recognize/${type}`);
   try {

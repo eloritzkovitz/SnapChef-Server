@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
+import path from "path";
+import fs from "fs";
 import usersRoute from "./modules/users/userRoutes";
 import ingredientsRoute from "./modules/ingredients/ingredientRoutes";
 import recipesRoute from "./modules/recipes/recipeRoutes";
@@ -12,6 +14,16 @@ const app = express();
 
 dotenv.config();
 
+// Ensure the uploads directory exists
+const uploadDir = path.join(__dirname, "../dist/uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Serve static files from the dist/uploads directory
+app.use("/dist/uploads", express.static(uploadDir));
+
+// Connect to MongoDB
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Connected to Database"));
