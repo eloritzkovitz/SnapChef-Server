@@ -37,9 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/users", usersRoute);
-app.use("/ingredients", ingredientsRoute);
-app.use("/recipes", recipesRoute);
+app.use("/api/users", usersRoute);
+app.use("/api/ingredients", ingredientsRoute);
+app.use("/api/recipes", recipesRoute);
 
 app.get("/about", (req, res) => {
   res.send("This is the API for the SnapChef application.");
