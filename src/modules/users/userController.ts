@@ -215,9 +215,8 @@ const updateUser = async (req: Request<{ id: string }, {}, UpdateUserRequestBody
       }
       
       // Save the updated user data
-      await user.save();
-  
-      // Return the updated user data with the profile picture URL
+      await user.save();  
+      
       res.json({
         ...user.toObject()        
       });      
