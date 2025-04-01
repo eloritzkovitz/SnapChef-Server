@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import path from 'path';
 import bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 import userModel from './User';
@@ -64,7 +65,7 @@ const register = async (req: Request, res: Response) => {
         const password = req.body.password;
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const profilePicture = '/images/default-profile.png'; 
+        const profilePicture = ""; 
         const user = await userModel.create({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
@@ -195,25 +196,33 @@ const updateUser = async (req: Request<{ id: string }, {}, UpdateUserRequestBody
         user.password = await bcrypt.hash(req.body.password, salt);
       }
       
-      /// Update profile picture
+      // Update profile picture
       if (req.file || req.body.profilePicture === "") {
         // Check if the old profile picture needs to be deleted
-        if (user.profilePicture && user.profilePicture !== '/images/default-profile.png') { 
-            deleteFile(user.profilePicture); // Delete the old image
+        if (user.profilePicture && user.profilePicture !== "") {
+            // Construct the absolute path to the file
+            const filePath = path.resolve(__dirname, '../../uploads', path.basename(user.profilePicture));
+            console.log(`Deleting file: ${filePath}`);
+            deleteFile(filePath);
         }
-      
+    
         // Update the profile picture based on the input
         if (req.file) {
-          user.profilePicture = `${process.env.BASE_URL}/uploads/${req.file.filename}`;
+            user.profilePicture = `/uploads/${req.file.filename}`; // Store relative path
         } else {
-          user.profilePicture = '/images/default-profile.png'; // Set to default image
+            user.profilePicture = ""; // Set to default image
         }
       }
       
       // Save the updated user data
-      await user.save();      
-
-      res.json(user);
+      await user.save();
+      
+      // Construct the full URL for the profile picture
+      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+      res.json({
+          ...user.toObject(),
+          profilePicture: user.profilePicture ? `${baseUrl}${user.profilePicture}` : null,
+      });      
     } catch (error) {
       res.status(500).json({ message: 'Error updating user data', error });
     }
