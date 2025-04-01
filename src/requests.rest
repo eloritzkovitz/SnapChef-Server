@@ -1,5 +1,5 @@
 ### Add item to fridge
-POST http://localhost:3000/fridge
+POST http://localhost:3000/api/fridge
 Content-Type: application/json
 
 {
@@ -11,14 +11,14 @@ Content-Type: application/json
 }
 
 ### Get all items from fridge
-GET http://localhost:3000/fridge
+GET http://localhost:3000/api/fridge
 
 ### Delete item from fridge
-DELETE http://localhost:3000/fridge/<PUT_ITEM_ID_HERE>
+DELETE http://localhost:3000/api/fridge/<PUT_ITEM_ID_HERE>
 
 
 ### Save recipe to cookingbook
-POST http://localhost:3000/cookingbook/save
+POST http://localhost:3000/api/cookingbook/save
 Content-Type: application/json
 
 {
@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 ### Remove saved recipe
-DELETE http://localhost:3000/cookingbook/remove
+DELETE http://localhost:3000/api/cookingbook/remove
 Content-Type: application/json
 
 {
@@ -36,7 +36,7 @@ Content-Type: application/json
 }
 
 ### Share recipe with friend
-POST http://localhost:3000/cookingbook/share
+POST http://localhost:3000/api/cookingbook/share
 Content-Type: application/json
 
 {
@@ -46,13 +46,13 @@ Content-Type: application/json
 }
 
 ### Get saved recipes
-GET http://localhost:3000/cookingbook?userId=123
+GET http://localhost:3000/api/cookingbook?userId=123
 
 ### Search fridge items
-GET http://localhost:3000/fridge/search?name=חלב
+GET http://localhost:3000/api/fridge/search?name=חלב
 
 ### Update fridge item
-PUT http://localhost:3000/fridge/<PUT_ITEM_ID_HERE>
+PUT http://localhost:3000/api/fridge/<PUT_ITEM_ID_HERE>
 Content-Type: application/json
 
 {
