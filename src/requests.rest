@@ -1,0 +1,62 @@
+### Add item to fridge
+POST http://localhost:3000/fridge
+Content-Type: application/json
+
+{
+  "name": "soy milk",
+  "category": "dairy",
+  "quantity": 1,
+  "expiryDate": "2025-05-01",
+  "imageURL": "https://example.com/image.jpg"
+}
+
+### Get all items from fridge
+GET http://localhost:3000/fridge
+
+### Delete item from fridge
+DELETE http://localhost:3000/fridge/<PUT_ITEM_ID_HERE>
+
+
+### Save recipe to cookingbook
+POST http://localhost:3000/cookingbook/save
+Content-Type: application/json
+
+{
+  "userId": "123",
+  "recipeId": "abc456"
+}
+
+### Remove saved recipe
+DELETE http://localhost:3000/cookingbook/remove
+Content-Type: application/json
+
+{
+  "userId": "123",
+  "recipeId": "abc456"
+}
+
+### Share recipe with friend
+POST http://localhost:3000/cookingbook/share
+Content-Type: application/json
+
+{
+  "userId": "123",
+  "recipeId": "abc456",
+  "friendId": "456"
+}
+
+### Get saved recipes
+GET http://localhost:3000/cookingbook?userId=123
+
+### Search fridge items
+GET http://localhost:3000/fridge/search?name=חלב
+
+### Update fridge item
+PUT http://localhost:3000/fridge/<PUT_ITEM_ID_HERE>
+Content-Type: application/json
+
+{
+  "name": "soy milk suger free",
+  "category": "dairy",
+  "quantity": 2
+}
