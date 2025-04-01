@@ -216,12 +216,10 @@ const updateUser = async (req: Request<{ id: string }, {}, UpdateUserRequestBody
       
       // Save the updated user data
       await user.save();
-      
-      // Construct the full URL for the profile picture
-      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  
+      // Return the updated user data with the profile picture URL
       res.json({
-          ...user.toObject(),
-          profilePicture: user.profilePicture ? `${baseUrl}${user.profilePicture}` : null,
+        ...user.toObject()        
       });      
     } catch (error) {
       res.status(500).json({ message: 'Error updating user data', error });
