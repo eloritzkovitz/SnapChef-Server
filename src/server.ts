@@ -20,8 +20,8 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Serve static files from the dist/uploads directory
-app.use("/dist/uploads", express.static(uploadDir));
+// Serve static files from the "uploads" directory
+app.use('/uploads', express.static(path.join(__dirname, '../dist/uploads')));
 
 // Connect to MongoDB
 const db = mongoose.connection;
