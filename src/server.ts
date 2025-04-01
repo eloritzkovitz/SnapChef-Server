@@ -63,7 +63,9 @@ const options = {
   apis: [
     "./src/modules/**/userRoutes.ts",
     "./src/modules/**/ingredientRoutes.ts",
-    "./src/modules/**/recipeRoutes.ts"
+    "./src/modules/**/recipeRoutes.ts",
+    "./src/modules//fridgeRoutes.ts",
+    "./src/modules//cookbookRoutes.ts"
   ],
 };
 const specs = swaggerJsDoc(options);
