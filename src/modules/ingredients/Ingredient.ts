@@ -13,7 +13,7 @@ const IngredientSchema: Schema = new Schema(
     id: { type: String, required: true },
     name: { type: String, required: true },
     category: { type: String, required: true },
-    imageURL: { type: String, required: true },
+    imageURL: { type: String, default: "" },
     quantity: { type: Number, required: true },
   },
   { timestamps: true }

@@ -50,7 +50,7 @@ router.post("/", fridgeController.createFridge);
  *         description: List of fridge items
  */
 // Get fridge content
-router.get("/:id", fridgeController.getFridgeContent);
+router.get("/:id/items", fridgeController.getFridgeContent);
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ router.get("/:id", fridgeController.getFridgeContent);
  *         description: Item added successfully
  */
 // Add a new item to the fridge
-router.post("/:id/items", fridgeController.addItem);
+router.post("/:fridgeId/items", fridgeController.addItem);
 
 /**
  * @swagger
