@@ -92,11 +92,17 @@ router.post("/:id/items", fridgeController.addItem);
 
 /**
  * @swagger
- * /api/fridge/items/{itemId}:
+ * /api/fridge/{id}/items/{itemId}:
  *   put:
  *     summary: Update an item in the fridge
  *     tags: [Fridge]
  *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
  *       - in: path
  *         name: itemId
  *         required: true
@@ -119,20 +125,28 @@ router.post("/:id/items", fridgeController.addItem);
  *               expiryDate:
  *                 type: string
  *                 format: date
+ *               imageURL:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Item updated successfully
  */
 // Update an item in the fridge
-router.put("/items/:itemId", fridgeController.updateItem);
+router.put("/:id/items/:itemId", fridgeController.updateItem);
 
 /**
  * @swagger
- * /api/fridge/items/{itemId}:
+ * /api/fridge/{id}/items/{itemId}:
  *   delete:
  *     summary: Delete an item from the fridge
  *     tags: [Fridge]
  *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
  *       - in: path
  *         name: itemId
  *         required: true
@@ -144,6 +158,6 @@ router.put("/items/:itemId", fridgeController.updateItem);
  *         description: Item deleted successfully
  */
 // Delete an item from the fridge
-router.delete("/items/:itemId", fridgeController.deleteItem);
+router.delete("/:id/items/:itemId", fridgeController.deleteItem);
 
 export default router;
