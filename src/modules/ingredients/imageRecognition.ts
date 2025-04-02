@@ -1,11 +1,12 @@
 import 'dotenv/config';
 import vision from '@google-cloud/vision';
 import { loadIngredientData } from '../../utils/ingredientData';
+import { Ingredient } from './ingredient';
 
 const client = new vision.ImageAnnotatorClient();
 
 // Recognize an image and return the detected ingredient and category
-async function recognizePhoto(imagePath: string): Promise<{ ingredient: string; category: string }[]> {
+async function recognizePhoto(imagePath: string): Promise<Ingredient|null> {
   try {
     // Perform label detection
     const [result] = await client.labelDetection(imagePath);
@@ -37,20 +38,25 @@ async function recognizePhoto(imagePath: string): Promise<{ ingredient: string; 
         }
       }
 
-      console.log(`Ingredient: ${ingredientName}, Category: ${categoryMatch}`);
-      return [{ ingredient: ingredientName, category: categoryMatch }];
+      console.log(`Ingredient: ${ingredientName}, Category: ${categoryMatch}`);      
+      return {
+        name: ingredientName,
+        category: categoryMatch,
+        imageURL: imagePath,
+        quantity: 1,
+      } as Ingredient;
     } else {
       console.log('No labels detected.');
-      return [{ ingredient: 'Unknown', category: 'Unknown' }];
+      return null;
     }
   } catch (error) {
     console.error('Error during label detection:', error);
-    return [{ ingredient: 'Unknown', category: 'Unknown' }];
+    return null;
   }
 }
 
 // Recognize an image and return the detected ingredient and category
-async function recognizeReceipt(imagePath: string): Promise<{ ingredient: string; category: string }[]> {
+async function recognizeReceipt(imagePath: string): Promise<Ingredient|null> {
   try {
     // Perform text detection
     const [result] = await client.textDetection(imagePath);
@@ -83,19 +89,24 @@ async function recognizeReceipt(imagePath: string): Promise<{ ingredient: string
       }
 
       console.log(`Ingredient: ${ingredientName}, Category: ${categoryMatch}`);
-      return [{ ingredient: ingredientName, category: categoryMatch }];
+      return {
+        name: ingredientName,
+        category: categoryMatch,
+        imageURL: imagePath,
+        quantity: 1,
+      } as Ingredient;
     } else {
       console.log('No texts detected.');
-      return [{ ingredient: 'Unknown', category: 'Unknown' }];
+      return null;
     }
   } catch (error) {
     console.error('Error during text detection:', error);
-    return [{ ingredient: 'Unknown', category: 'Unknown' }];
+    return null;
   }
 }
 
 // Recognize a barcode and return the detected ingredient and category
-async function recognizeBarcode(imagePath: string): Promise<{ ingredient: string; category: string }[]> {
+async function recognizeBarcode(imagePath: string): Promise<Ingredient|null> {
   try {
     // Perform barcode detection
     const [result] = await client.textDetection(imagePath);
@@ -137,14 +148,19 @@ async function recognizeBarcode(imagePath: string): Promise<{ ingredient: string
       }
 
       console.log(`Ingredient: ${ingredientName}, Category: ${categoryMatch}`);
-      return [{ ingredient: ingredientName, category: categoryMatch }];
+      return {
+        name: ingredientName,
+        category: categoryMatch,
+        imageURL: imagePath,
+        quantity: 1,
+      } as Ingredient;
     } else {
       console.log('No barcodes detected.');
-      return [{ ingredient: 'Unknown', category: 'Unknown' }];
+      return null;
     }
   } catch (error) {
     console.error('Error during barcode detection:', error);
-    return [{ ingredient: 'Unknown', category: 'Unknown' }];
+    return null;
   }
 }
 
