@@ -1,18 +1,19 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import { Ingredient } from '../ingredients/Ingredient';
 
-interface Fridge extends Document {
-  fridgeId: string;
-  userId: string;
+interface Fridge extends Document {  
+  ownerId: Schema.Types.ObjectId,
   ingredients: Types.ObjectId[]; 
 }
 
 const FridgeSchema: Schema = new Schema(
-  {
-    fridgeId: { type: String, required: true },
-    userId: { type: String, required: true }, 
-    ingredients: [{ type: Schema.Types.ObjectId, ref: 'Ingredient' }],
+  {    
+    ownerId: { type: Schema.Types.ObjectId, ref: 'Users', required: true }, 
+    ingredients: [{ type: Schema.Types.ObjectId, ref: 'Ingredients' }]
   },
   { timestamps: true }
 );
 
-export default mongoose.model<Fridge>('Fridge', FridgeSchema);
+const fridgeModel = mongoose.model<Fridge>("Fridges", FridgeSchema);
+
+export default fridgeModel;

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import SavedRecipe from "./cookbookModel";
+import SavedRecipe from "./Cookbook";
 
 // Add saved recipe
 export const saveRecipe = async (
@@ -9,7 +9,7 @@ export const saveRecipe = async (
   try {
     const { userId, recipeId } = req.body;
     const saved = await SavedRecipe.create({ userId, recipeId });
-    res.status(201).json(saved); // 👈 בלי return
+    res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ error: "Failed to save recipe" });
   }
@@ -47,8 +47,7 @@ export const shareRecipe = async (
       res.status(404).json({ error: "Recipe not found" });
       return;
     }
-
-    saved.sharedWith?.push(friendId);
+    
     await saved.save();
 
     res.json(saved);

@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Ingredient extends Document {
+  id: string;
   name: string;
   category: string;
   imageURL: string;
@@ -9,14 +10,15 @@ export interface Ingredient extends Document {
 
 const IngredientSchema: Schema = new Schema(
   {
+    id: { type: String, required: true },
     name: { type: String, required: true },
     category: { type: String, required: true },
-    imageURL: { type: String, required: true },
+    imageURL: { type: String, default: "" },
     quantity: { type: Number, required: true },
   },
   { timestamps: true }
 );
 
-const ingredientModel= mongoose.model<Ingredient>("Ingredient", IngredientSchema);
+const ingredientModel = mongoose.model<Ingredient>("Ingredients", IngredientSchema);
 
 export default ingredientModel;

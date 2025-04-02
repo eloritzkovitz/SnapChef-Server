@@ -3,6 +3,8 @@ import path from 'path';
 import bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 import userModel from './User';
+import fridgeModel from '../fridge/Fridge';
+import cookbookModel from '../cookbook/Cookbook';
 import { deleteFile } from '../../utils/fileService';
 import { generateToken, verifyRefreshToken } from '../../utils/tokenService';
 
@@ -74,6 +76,24 @@ const register = async (req: Request, res: Response) => {
             profilePicture,
             joinDate: new Date().toISOString()        
         });
+
+        // Create a fridge for the user
+        const fridge = await fridgeModel.create({
+            ownerId: user._id,
+            ingredients: []
+        });
+
+        // Create a cookbook for the user
+        const cookbook = await cookbookModel.create({
+            ownerId: user._id,
+            recipes: []
+        });
+
+        // Associate the fridge and cookbook IDs with the user
+        user.fridgeId = fridge._id as any;
+        user.cookbookId = cookbook._id as any;
+        await user.save();
+
         res.status(200).send(user);
     } catch (err) {
         res.status(400).send(err);
@@ -189,8 +209,7 @@ const updateUser = async (req: Request<{ id: string }, {}, UpdateUserRequestBody
       if (req.body.lastName !== undefined) user.lastName = req.body.lastName;
       if (req.body.headline !== undefined) user.headline = req.body.headline;
       if (req.body.bio !== undefined) user.bio = req.body.bio;
-      if (req.body.location !== undefined) user.location = req.body.location;
-      if (req.body.website !== undefined) user.website = req.body.website;
+      if (req.body.location !== undefined) user.location = req.body.location;      
       if (req.body.password) {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(req.body.password, salt);
