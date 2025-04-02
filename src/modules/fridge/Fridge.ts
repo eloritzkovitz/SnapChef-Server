@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
-import { Ingredient } from '../ingredients/ingredient';
+import { Ingredient } from '../ingredients/Ingredient';
 
 interface Fridge extends Document {  
   ownerId: string;
@@ -14,4 +14,6 @@ const FridgeSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.model<Fridge>('Fridge', FridgeSchema);
+const fridgeModel = mongoose.model<Fridge>("Ingredient", FridgeSchema);
+
+export default fridgeModel;
