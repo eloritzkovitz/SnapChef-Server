@@ -1,73 +1,141 @@
 import { Request, Response } from "express";
-import FridgeItem from "./Fridge";
+import fridgeModel from "./Fridge";
+import ingredientModel from "../ingredients/Ingredient";
 
-// Create a new item
-export const addItem = async (req: Request, res: Response) => {
+// Create a new fridge
+const createFridge = async (req: Request, res: Response): Promise<void> => {
   try {
-    const item = await FridgeItem.create(req.body);
-    res.status(201).json(item);
-  } catch (err) {
-    res.status(400).json({ error: "Failed to add item", details: err });
+    const { userId } = req.body;
+
+    // Validate userId
+    if (!userId) {
+      res.status(400).json({ message: "User ID is required" });
+      return;
+    }
+
+    const fridge = await fridgeModel.create({ ownerId: userId, ingredients: [] });
+    res.status(201).json(fridge);
+  } catch (error) {
+    console.error("Error creating fridge:", error);
+    res.status(500).json({ message: "Error creating fridge", error });
   }
 };
 
-// Get all items / filter by category
-export const getItems = async (req: Request, res: Response) => {
+// Get fridge content
+const getFridgeContent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category } = req.query;
-    const filter = category ? { category } : {};
-    const items = await FridgeItem.find(filter);
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch items" });
+    const { id } = req.params;
+
+    // Find the fridge and populate the ingredients
+    const fridge = await fridgeModel.findById(id).populate("ingredients");
+    if (!fridge) {
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+
+    res.status(200).json(fridge.ingredients);
+  } catch (error) {
+    console.error("Error fetching fridge content:", error);
+    res.status(500).json({ message: "Error fetching fridge content", error });
   }
 };
 
-// Search by name
-export const searchItems = async (req: Request, res: Response) => {
+// Add an item to the fridge
+const addItem = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q } = req.query;
-    const items = await FridgeItem.find({ name: { $regex: q, $options: "i" } });
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to search items" });
+    const { fridgeId } = req.params;
+    const { id, name, category, imageURL, quantity } = req.body;
+
+    // Validate input
+    if (!name || !category || !quantity) {
+      res.status(400).json({ message: "Name, category, and quantity are required" });
+      return;
+    }
+
+    // Create the ingredient in the Ingredients collection
+    const ingredient = await ingredientModel.create({ id, name, category, imageURL, quantity });
+
+    // Find the fridge
+    const fridge = await fridgeModel.findById(fridgeId);
+    if (!fridge) {
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+
+    // Add the ingredient's ID to the fridge's ingredients array
+    fridge.ingredients.push(ingredient._id as typeof fridge.ingredients[0]);
+    await fridge.save();
+
+    res.status(201).json({ message: "Ingredient added successfully", ingredient });
+  } catch (error) {
+    console.error("Error adding item to fridge:", error);
+    res.status(500).json({ message: "Error adding item to fridge", error });
   }
 };
 
-// Update item
-export const updateItem = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Update an item in the fridge
+const updateItem = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updated = await FridgeItem.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
+    const { id, itemId } = req.params;
+    const { quantity } = req.body;
+
+    // Validate input
+    if (!quantity) {
+      res.status(400).json({ message: "Quantity is required" });
+      return;
+    }
+
+    // Find the fridge
+    const fridge = await fridgeModel.findById(id);
+    if (!fridge) {
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+
+    // Find the ingredient in the Ingredients collection
+    const ingredient = await ingredientModel.findOne({ id: itemId });
+    if (!ingredient) {
+      res.status(404).json({ message: "Ingredient not found" });
+      return;
+    }
+
+    // Update the ingredient's quantity
+    ingredient.quantity = quantity;
+    await ingredient.save();
+
+    res.status(200).json({ message: "Ingredient updated successfully", ingredient });
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ message: "Error updating item", error });
+  }
+};
+
+// Delete an item from the fridge
+const deleteItem = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id, itemId } = req.params;
+
+    // Find the fridge
+    const fridge = await fridgeModel.findById(id);
+    if (!fridge) {
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+
+    // Remove the ingredient's ID from the fridge's ingredients array
+    fridge.ingredients = fridge.ingredients.filter(
+      (ingredientId) => ingredientId.toString() !== itemId
     );
-    if (!updated) {
-      res.status(404).json({ error: "Item not found" });
-      return;
-    }
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ error: "Failed to update item" });
+    await fridge.save();
+
+    // Optionally, delete the ingredient from the Ingredients collection
+    await ingredientModel.findOneAndDelete({ id: itemId });
+
+    res.status(200).json({ message: "Ingredient deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    res.status(500).json({ message: "Error deleting item", error });
   }
 };
 
-// Delete item
-export const deleteItem = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const deleted = await FridgeItem.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      res.status(404).json({ error: "Item not found" });
-      return;
-    }
-    res.json({ message: "Item deleted" });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to delete item" });
-  }
-};
+export default { createFridge, getFridgeContent, addItem, updateItem, deleteItem };

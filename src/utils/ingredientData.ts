@@ -1,24 +1,33 @@
 import path from 'path';
 import fs from 'fs';
 
-interface Category {
+interface Ingredient {
+  id: string;
   name: string;
-  ingredients: string[];
-  keywords: string[];
+  category: string;
 }
 
-interface Categories {
-  categories: Category[];
-}
+let ingredientsData: Ingredient[] | null = null;
 
-let categoriesData: Categories | null = null;
+export async function loadIngredientData(): Promise<Ingredient[]> {
+  if (!ingredientsData) {
+    const ingredientsPath = path.resolve(__dirname, '../data/ingredientData.json');
+    console.log('Resolved path:', ingredientsPath);
 
-export async function loadIngredientData(): Promise<Categories> {
-  if (!categoriesData) {
-    // Determine the correct path based on the current directory
-    const categoriesPath = path.resolve(__dirname, '../data/ingredientData.json');
-    const data = await fs.promises.readFile(categoriesPath, 'utf-8');
-    categoriesData = JSON.parse(data);
+    try {
+      const data = await fs.promises.readFile(ingredientsPath, 'utf-8');    
+
+      ingredientsData = JSON.parse(data) as Ingredient[];
+
+      if (!Array.isArray(ingredientsData)) {
+        console.error('Parsed data is not an array:', ingredientsData);
+        throw new Error('Ingredient data is not an array');
+      }
+    } catch (error) {
+      console.error('Error loading or parsing ingredient data:', error);
+      throw error;
+    }
   }
-  return categoriesData as Categories;
+
+  return ingredientsData;
 }
