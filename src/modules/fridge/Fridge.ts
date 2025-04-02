@@ -3,13 +3,13 @@ import { Ingredient } from '../ingredients/Ingredient';
 
 interface Fridge extends Document {  
   ownerId: Schema.Types.ObjectId,
-  ingredients: Ingredient[]; 
+  ingredients: Types.ObjectId[]; 
 }
 
 const FridgeSchema: Schema = new Schema(
   {    
     ownerId: { type: Schema.Types.ObjectId, ref: 'Users', required: true }, 
-    ingredients: [{ type: Schema.Types.ObjectId, ref: 'Ingredient' }],
+    ingredients: [{ type: Schema.Types.ObjectId, ref: 'Ingredients' }]
   },
   { timestamps: true }
 );
