@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import FridgeItem from "./fridgeModel";
+import FridgeItem from "./Fridge";
 
 // Create a new item
 export const addItem = async (req: Request, res: Response) => {
