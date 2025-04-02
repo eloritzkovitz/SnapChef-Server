@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import SavedRecipe from "./cookbookModel";
+import SavedRecipe from "./Cookbook";
 
 // Add saved recipe
 export const saveRecipe = async (
