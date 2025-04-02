@@ -15,8 +15,7 @@ export async function loadIngredientData(): Promise<Ingredient[]> {
     console.log('Resolved path:', ingredientsPath);
 
     try {
-      const data = await fs.promises.readFile(ingredientsPath, 'utf-8');
-      console.log('Raw JSON data:', data);
+      const data = await fs.promises.readFile(ingredientsPath, 'utf-8');    
 
       ingredientsData = JSON.parse(data) as Ingredient[];
 
