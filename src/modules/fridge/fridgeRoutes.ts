@@ -1,13 +1,8 @@
 import express from "express";
-import {
-  addItem,
-  getItems,
-  searchItems,
-  updateItem,
-  deleteItem,
-} from "./fridgeController";
+import fridgeController from "./fridgeController";
 
 const router = express.Router();
+
 /**
  * @swagger
  * tags:
@@ -19,8 +14,57 @@ const router = express.Router();
  * @swagger
  * /api/fridge:
  *   post:
+ *     summary: Create a new fridge for a user
+ *     tags: [Fridge]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Fridge created successfully
+ */
+// Create a new fridge
+router.post("/", fridgeController.createFridge);
+
+/**
+ * @swagger
+ * /api/fridge/{id}:
+ *   get:
+ *     summary: Get all items in a fridge
+ *     tags: [Fridge]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *     responses:
+ *       200:
+ *         description: List of fridge items
+ */
+// Get fridge content
+router.get("/:id", fridgeController.getFridgeContent);
+
+/**
+ * @swagger
+ * /api/fridge/{id}/items:
+ *   post:
  *     summary: Add a new item to the fridge
  *     tags: [Fridge]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
  *     requestBody:
  *       required: true
  *       content:
@@ -43,55 +87,22 @@ const router = express.Router();
  *       201:
  *         description: Item added successfully
  */
-
-// Add new item
-router.post("/", addItem);
-
-/**
- * @swagger
- * /api/fridge:
- *   get:
- *     summary: Get all fridge items
- *     tags: [Fridge]
- *     responses:
- *       200:
- *         description: List of fridge items
- */
-// Get all items / filter by category
-router.get("/", getItems);
+// Add a new item to the fridge
+router.post("/:id/items", fridgeController.addItem);
 
 /**
  * @swagger
- * /api/fridge/search:
- *   get:
- *     summary: Search fridge items by name
- *     tags: [Fridge]
- *     parameters:
- *       - in: query
- *         name: name
- *         schema:
- *           type: string
- *         required: true
- *         description: Name to search
- *     responses:
- *       200:
- *         description: Filtered fridge items
- */
-
-// Search items by name
-router.get("/search", searchItems);
-/**
- * @swagger
- * /api/fridge/{id}:
+ * /api/fridge/items/{itemId}:
  *   put:
- *     summary: Update a fridge item by ID
+ *     summary: Update an item in the fridge
  *     tags: [Fridge]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: itemId
  *         required: true
  *         schema:
  *           type: string
+ *         description: Item ID
  *     requestBody:
  *       required: true
  *       content:
@@ -105,32 +116,34 @@ router.get("/search", searchItems);
  *                 type: string
  *               quantity:
  *                 type: number
+ *               expiryDate:
+ *                 type: string
+ *                 format: date
  *     responses:
  *       200:
  *         description: Item updated successfully
  */
-
-// Update item by ID
-router.put("/:id", updateItem);
-
+// Update an item in the fridge
+router.put("/items/:itemId", fridgeController.updateItem);
 
 /**
  * @swagger
- * /api/fridge/{id}:
+ * /api/fridge/items/{itemId}:
  *   delete:
- *     summary: Delete a fridge item by ID
+ *     summary: Delete an item from the fridge
  *     tags: [Fridge]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: itemId
  *         required: true
  *         schema:
  *           type: string
+ *         description: Item ID
  *     responses:
  *       200:
  *         description: Item deleted successfully
  */
-// Delete item by ID
-router.delete("/:id", deleteItem);
+// Delete an item from the fridge
+router.delete("/items/:itemId", fridgeController.deleteItem);
 
 export default router;
