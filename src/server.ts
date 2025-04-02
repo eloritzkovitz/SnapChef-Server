@@ -41,8 +41,8 @@ app.use((req, res, next) => {
 
 app.use("/api/users", usersRoute);
 app.use("/api/ingredients", ingredientsRoute);
-app.use("/api/recipes", recipesRoute);
 app.use("/api/fridge", fridgeRoutes);
+app.use("/api/recipes", recipesRoute);
 app.use("/api/cookbook",cookbookRoutes);
 
 app.get("/about", (req, res) => {
@@ -63,9 +63,9 @@ const options = {
   apis: [
     "./src/modules/**/userRoutes.ts",
     "./src/modules/**/ingredientRoutes.ts",
-    "./src/modules/**/recipeRoutes.ts",
-    "./src/modules//fridgeRoutes.ts",
-    "./src/modules//cookbookRoutes.ts"
+    "./src/modules/**/fridgeRoutes.ts",
+    "./src/modules/**/recipeRoutes.ts",    
+    "./src/modules/**/cookbookRoutes.ts"
   ],
 };
 const specs = swaggerJsDoc(options);
