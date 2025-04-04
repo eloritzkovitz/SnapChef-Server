@@ -5,71 +5,67 @@ import { Ingredient } from './Ingredient';
 
 const client = new vision.ImageAnnotatorClient();
 
-// Recognize an image and return the detected ingredient and category
-async function recognizePhoto(imagePath: string): Promise<Ingredient | null> {
+// Recognize an image and return the detected ingredients and their categories
+async function recognizePhoto(imagePath: string): Promise<Ingredient[]> {
   try {
-    // Perform label detection
-    const [result] = await client.labelDetection(imagePath);
-    const labels = result.labelAnnotations;
+    // Perform object localization
+    if (!client.objectLocalization) {
+      throw new Error('Object localization is not available on the client.');
+    }
+    const [result] = await client.objectLocalization(imagePath);
+    const objects = result.localizedObjectAnnotations;
 
-    // Check if labels are defined and not empty
-    if (labels && labels.length > 0) {
-      // Log the detected labels
-      labels.forEach(label => {
-        console.log(`Label: ${label.description}, Score: ${label.score}`);
+    // Check if objects are defined and not empty
+    if (objects && objects.length > 0) {
+      // Log the detected objects
+      objects.forEach(object => {
+        console.log(`Object: ${object.name}, Score: ${object.score}`);
       });
 
       // Load the ingredient data
       const ingredientsData = await loadIngredientData();
-      console.log(ingredientsData[0]);
 
       // Ensure ingredientsData is iterable
       if (!Array.isArray(ingredientsData)) {
         console.error('Error: ingredientsData is not an array.');
-        return null;
+        return [];
       }
 
-      // Find the highest score label that matches an ingredient
-      let matchedIngredient: Ingredient | null = null;
-      let highestScore = 0;
+      // Collect all matching ingredients
+      const matchedIngredients: Ingredient[] = [];
 
-      for (const label of labels) {
-        // Ensure label.description is defined
-        if (!label.description) {
+      for (const object of objects) {
+        // Ensure object.name is defined
+        if (!object.name) {
           continue;
         }
 
-        const labelDescription = label.description.toLowerCase();
+        const objectName = object.name.toLowerCase();
         for (const ingredient of ingredientsData) {
-          if (
-            ingredient.name.toLowerCase() === labelDescription &&
-            label.score &&
-            label.score > highestScore
-          ) {
-            matchedIngredient = {
+          if (ingredient.name.toLowerCase() === objectName) {
+            matchedIngredients.push({
               ...ingredient,
               imageURL: imagePath,
               quantity: 1,
-            } as Ingredient;
-            highestScore = label.score;
+            } as Ingredient);
           }
         }
       }
 
-      if (matchedIngredient) {
-        console.log(`Ingredient: ${matchedIngredient.name}, Category: ${matchedIngredient.category}`);
-        return matchedIngredient;
+      if (matchedIngredients.length > 0) {
+        console.log('Matched Ingredients:', matchedIngredients.map(i => i.name).join(', '));
+        return matchedIngredients;
       } else {
-        console.log('No matching ingredient found.');
-        return null;
+        console.log('No matching ingredients found.');
+        return [];
       }
     } else {
-      console.log('No labels detected.');
-      return null;
+      console.log('No objects detected.');
+      return [];
     }
   } catch (error) {
-    console.error('Error during label detection:', error);
-    return null;
+    console.error('Error during object detection:', error);
+    return [];
   }
 }
 
