@@ -1,5 +1,5 @@
 import express from "express";
-import { handleRecognition } from "./ingredientController";
+import ingredientController from "./ingredientController";
 import upload from "../../middleware/upload";
 
 const router = express.Router();
@@ -32,8 +32,7 @@ const router = express.Router();
  *         description: Recognized ingredients from photo
  */
 // Define routes
-router.post("/recognize/photo", upload.single("file"), (req, res) =>
-  handleRecognition(req, res, "photo")
+router.post("/recognize/photo", upload.single("file"), (req, res) =>  ingredientController.recognize(req, res, "photo")
 );
 
 /**
@@ -57,8 +56,7 @@ router.post("/recognize/photo", upload.single("file"), (req, res) =>
  *       200:
  *         description: Recognized ingredients from receipt
  */
-router.post("/recognize/receipt", upload.single("file"), (req, res) =>
-  handleRecognition(req, res, "receipt")
+router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "photo")
 );
 /**
  * @swagger
@@ -81,8 +79,18 @@ router.post("/recognize/receipt", upload.single("file"), (req, res) =>
  *       200:
  *         description: Recognized ingredients from barcode
  */
-router.post("/recognize/barcode", upload.single("file"), (req, res) =>
-  handleRecognition(req, res, "barcode")
+router.post("/recognize/barcode", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "photo")
 );
+
+router.get("/", (req, res) => {
+  // Check if query parameters are provided
+  if (Object.keys(req.query).length > 0) {
+    ingredientController.getIngredientsByQuery(req, res); // Handle query-based search
+  } else {
+    ingredientController.getAllIngredients(req, res); // Handle fetching all ingredients
+  }
+});
+
+router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res));
 
 export default router;
