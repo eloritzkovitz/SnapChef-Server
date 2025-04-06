@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import fridgeModel from "./Fridge";
-import ingredientModel from "../ingredients/Ingredient";
 
 // Create a new fridge
 const createFridge = async (req: Request, res: Response): Promise<void> => {
@@ -26,8 +25,8 @@ const getFridgeContent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // Find the fridge and populate the ingredients
-    const fridge = await fridgeModel.findById(id).populate("ingredients");
+    // Find the fridge
+    const fridge = await fridgeModel.findById(id);
     if (!fridge) {
       res.status(404).json({ message: "Fridge not found" });
       return;
@@ -47,13 +46,10 @@ const addItem = async (req: Request, res: Response): Promise<void> => {
     const { id, name, category, imageURL, quantity } = req.body;
 
     // Validate input
-    if (!name || !category || !quantity) {
-      res.status(400).json({ message: "Name, category, and quantity are required" });
+    if (!id || !name || !category || !quantity) {
+      res.status(400).json({ message: "ID, name, category, and quantity are required" });
       return;
     }
-
-    // Create the ingredient in the Ingredients collection
-    const ingredient = await ingredientModel.create({ id, name, category, imageURL, quantity });
 
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
@@ -62,26 +58,32 @@ const addItem = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Add the ingredient's ID to the fridge's ingredients array
-    fridge.ingredients.push(ingredient._id as typeof fridge.ingredients[0]);
+    // Check if the ingredient already exists in the fridge
+    const existingIngredient = fridge.ingredients.find((ingredient) => ingredient.id === id);
+    if (existingIngredient) {
+      res.status(400).json({ message: "Ingredient already exists in the fridge" });
+      return;
+    }
+
+    // Add the ingredient object directly to the fridge's ingredients array
+    fridge.ingredients.push({ id, name, category, imageURL, quantity });
     await fridge.save();
 
-    res.status(201).json({ message: "Ingredient added successfully", ingredient });
+    res.status(201).json({ message: "Ingredient added successfully", ingredient: { id, name, category, imageURL, quantity } });
   } catch (error) {
     console.error("Error adding item to fridge:", error);
     res.status(500).json({ message: "Error adding item to fridge", error });
   }
 };
 
-// Update an item in the fridge
 const updateItem = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id, itemId } = req.params;
+    const { id, itemId } = req.params; // `id` is the fridge ID, `itemId` is the ingredient ID
     const { quantity } = req.body;
 
     // Validate input
-    if (!quantity) {
-      res.status(400).json({ message: "Quantity is required" });
+    if (quantity === undefined || quantity === null || isNaN(quantity)) {
+      res.status(400).json({ message: "Valid quantity is required" });
       return;
     }
 
@@ -92,16 +94,21 @@ const updateItem = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Find the ingredient in the Ingredients collection
-    const ingredient = await ingredientModel.findOne({ id: itemId });
+    // Find the ingredient in the fridge's ingredients array
+    const ingredient = fridge.ingredients.find((ingredient) => ingredient.id === itemId);
     if (!ingredient) {
-      res.status(404).json({ message: "Ingredient not found" });
+      res.status(404).json({ message: "Ingredient not found in this fridge" });
       return;
     }
 
     // Update the ingredient's quantity
     ingredient.quantity = quantity;
-    await ingredient.save();
+
+    // Explicitly mark the ingredients array as modified
+    fridge.markModified("ingredients");
+
+    // Save the updated fridge
+    await fridge.save();
 
     res.status(200).json({ message: "Ingredient updated successfully", ingredient });
   } catch (error) {
@@ -122,14 +129,18 @@ const deleteItem = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Remove the ingredient's ID from the fridge's ingredients array
-    fridge.ingredients = fridge.ingredients.filter(
-      (ingredientId) => ingredientId.toString() !== itemId
-    );
-    await fridge.save();
+    // Remove the ingredient from the fridge's ingredients array
+    const initialLength = fridge.ingredients.length;
+    fridge.ingredients = fridge.ingredients.filter((ingredient) => ingredient.id !== itemId);
 
-    // Optionally, delete the ingredient from the Ingredients collection
-    await ingredientModel.findOneAndDelete({ id: itemId });
+    // Check if the ingredient was actually removed
+    if (fridge.ingredients.length === initialLength) {
+      res.status(404).json({ message: "Ingredient not found in this fridge" });
+      return;
+    }
+
+    // Save the updated fridge
+    await fridge.save();
 
     res.status(200).json({ message: "Ingredient deleted successfully" });
   } catch (error) {
