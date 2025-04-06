@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import fs from 'fs/promises';
 import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 import  ingredientModel from './Ingredient';
 import { loadIngredientData } from '../../utils/ingredientData';
@@ -14,22 +15,29 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
     }
 
     let result;
-    switch (type) {
-      case 'photo':
-        result = await recognizePhoto(file.path);
-        break;
-      case 'receipt':
-        result = await recognizeReceipt(file.path);
-        break;
-      case 'barcode':
-        result = await recognizeBarcode(file.path);
-        break;
-      default:
-        res.status(400).json({ error: 'Invalid recognition type.' });
-        return;
-    }
+    try {
+      switch (type) {
+        case 'photo':
+          result = await recognizePhoto(file.path);
+          break;
+        case 'receipt':
+          result = await recognizeReceipt(file.path);
+          break;
+        case 'barcode':
+          result = await recognizeBarcode(file.path);
+          break;
+        default:
+          res.status(400).json({ error: 'Invalid recognition type.' });
+          return;
+      }
 
-    res.json(result);
+      res.json(result);
+    } finally {
+      // Delete the file after processing
+      await fs.unlink(file.path).catch((err) => {
+        console.error(`Error deleting file ${file.path}:`, err);
+      });
+    }
   } catch (error) {
     console.error(`Error recognizing ${type}:`, error);
     res.status(500).json({ error: 'Failed to recognize image.' });
