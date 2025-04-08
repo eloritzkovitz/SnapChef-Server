@@ -11,6 +11,7 @@ import ingredientsRoute from "./modules/ingredients/ingredientRoutes";
 import recipesRoute from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
+import notificationsRoutes from "./modules/notifications/notificationRoutes";
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/api/ingredients", ingredientsRoute);
 app.use("/api/fridge", fridgeRoutes);
 app.use("/api/recipes", recipesRoute);
 app.use("/api/cookbook",cookbookRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 app.get("/about", (req, res) => {
   res.send("This is the API for the SnapChef application.");
