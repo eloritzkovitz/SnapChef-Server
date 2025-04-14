@@ -1,5 +1,20 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
-import { Recipe } from '../recipes/Recipe';
+import mongoose, { Schema, Document } from 'mongoose';
+import type { Ingredient } from '../ingredients/Ingredient';
+
+interface Recipe {
+  id: string;
+  title: string;
+  description: string;
+  mealType: string;
+  cuisineType: string;
+  difficulty: string;
+  cookingTime: number;
+  prepTime: number;  
+  ingredients: Ingredient[];
+  instructions: string[];
+  imageURL?: string;
+  rating: number;
+}
 
 interface Cookbook extends Document {  
   ownerId: Schema.Types.ObjectId,
@@ -9,7 +24,7 @@ interface Cookbook extends Document {
 const CookbookSchema: Schema = new Schema(
   {    
     ownerId: { type: Schema.Types.ObjectId, ref: 'Users', required: true }, 
-    recipes: [{ type: Schema.Types.ObjectId, ref: 'Recipe' }],
+    recipes: { type: [Object], default: [] },
   },
   { timestamps: true }
 );
