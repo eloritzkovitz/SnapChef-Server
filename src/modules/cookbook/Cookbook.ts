@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import type { Ingredient } from '../ingredients/Ingredient';
 
 interface Recipe {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   mealType: string;
@@ -13,7 +13,7 @@ interface Recipe {
   ingredients: Ingredient[];
   instructions: string[];
   imageURL?: string;
-  rating: number;
+  rating: number | null;
 }
 
 interface Cookbook extends Document {  
