@@ -1,5 +1,6 @@
 import express from "express";
 import cookbookController from "./cookbookController";
+import { authMiddleware } from "../../middleware/auth";
 
 const router = express.Router();
 
@@ -58,7 +59,7 @@ const router = express.Router();
  *       200:
  *         description: Recipe added to the cookbook
  */
-router.post("/:cookbookId/recipes", cookbookController.addRecipe);
+router.post("/:cookbookId/recipes", authMiddleware, cookbookController.addRecipe);
 
 /**
  * @swagger
@@ -114,7 +115,7 @@ router.post("/:cookbookId/recipes", cookbookController.addRecipe);
  *       200:
  *         description: Recipe updated in the cookbook
  */
-router.put("/:cookbookId/recipes/:recipeId", cookbookController.updateRecipe);
+router.put("/:cookbookId/recipes/:recipeId", authMiddleware, cookbookController.updateRecipe);
 
 /**
  * @swagger
@@ -139,7 +140,7 @@ router.put("/:cookbookId/recipes/:recipeId", cookbookController.updateRecipe);
  *       200:
  *         description: Recipe removed from the cookbook
  */
-router.delete("/:cookbookId/recipes/:recipeId", cookbookController.removeRecipe);
+router.delete("/:cookbookId/recipes/:recipeId", authMiddleware, cookbookController.removeRecipe);
 
 /**
  * @swagger
@@ -158,6 +159,6 @@ router.delete("/:cookbookId/recipes/:recipeId", cookbookController.removeRecipe)
  *       200:
  *         description: The cookbook with all recipes
  */
-router.get("/:cookbookId", cookbookController.getCookbookContent);
+router.get("/:cookbookId", authMiddleware, cookbookController.getCookbookContent);
 
 export default router;
