@@ -198,7 +198,7 @@ router.post("/refresh", usersController.refresh);
  *       500:
  *         description: Server error
  */
-router.get("/user/:id?", authMiddleware, usersController.getUserData);
+router.get("/user/:id", authMiddleware, usersController.getUserData);
 
 /**
  * @swagger
