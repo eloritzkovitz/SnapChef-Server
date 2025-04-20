@@ -76,14 +76,14 @@ async function recognizeReceipt(imagePath: string): Promise<Ingredient | null> {
     const [result] = await client.textDetection(imagePath);
     const texts = result.textAnnotations;
 
-    // Check if texts are defined and not empty
+    // Check if the text is defined and not empty
     if (texts && texts.length > 0) {
       // Log the detected texts
       texts.forEach(text => {
         console.log(`Text: ${text.description}`);
       });
 
-      // Load the ingredient data
+      // Load ingredient data
       const ingredientsData = await loadIngredientData();
 
       // Find the first text that matches an ingredient
