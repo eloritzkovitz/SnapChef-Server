@@ -56,7 +56,7 @@ router.post("/recognize/photo", upload.single("file"), (req, res) =>  ingredient
  *       200:
  *         description: Recognized ingredients from receipt
  */
-router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "photo")
+router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "receipt")
 );
 /**
  * @swagger
@@ -79,7 +79,7 @@ router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredien
  *       200:
  *         description: Recognized ingredients from barcode
  */
-router.post("/recognize/barcode", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "photo")
+router.post("/recognize/barcode", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "barcode")
 );
 
 router.get("/", (req, res) => {
