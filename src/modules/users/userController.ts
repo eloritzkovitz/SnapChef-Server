@@ -244,6 +244,33 @@ const updateUser = async (req: Request<{ id: string }, {}, UpdateUserRequestBody
     }
 };
 
+// Delete user data
+const deleteUser = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+    try {
+        const userId = req.params.id;
+        const user = await userModel.findById(userId);
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        // Delete user's profile picture if it exists
+        if (user.profilePicture && user.profilePicture !== "") {
+            const filePath = path.resolve(__dirname, '../../uploads', path.basename(user.profilePicture));
+            console.log(`Deleting file: ${filePath}`);
+            deleteFile(filePath);
+        }
+
+        // Delete the user from the database
+        await userModel.findByIdAndDelete(userId);
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting user', error });
+    }
+};
+
 // Logout function
 const logout = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
@@ -298,6 +325,7 @@ export default {
     getUserData,
     getUserByName,
     updateUser,
+    deleteUser,
     refresh,
     logout
 };

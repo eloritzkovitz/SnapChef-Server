@@ -297,6 +297,35 @@ router.put("/user/:id", authMiddleware, upload.single("profilePicture"), usersCo
 
 /**
  * @swagger
+ * /auth/user/{userId}:
+ *   delete:
+ *     summary: Delete a user
+ *     description: Delete a user by their ID, including their profile picture and associated data.
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/user/:id", authMiddleware, usersController.deleteUser);
+
+/**
+ * @swagger
  * /auth/logout:
  *   post:
  *     summary: Log out a user
