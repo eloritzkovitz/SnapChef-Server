@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import fridgeModel from "./Fridge";
+import { logActivity } from "../../utils/logService";
+import { Document, Types } from "mongoose"; // Add this import
 
 // Create a new fridge
 const createFridge = async (req: Request, res: Response): Promise<void> => {
@@ -13,6 +15,16 @@ const createFridge = async (req: Request, res: Response): Promise<void> => {
     }
 
     const fridge = await fridgeModel.create({ ownerId: userId, ingredients: [] });
+    
+    // Log activity - fix by explicitly handling the ID
+    await logActivity(
+      userId,
+      'create',
+      'fridge',
+      fridge._id ? fridge._id.toString() : undefined,
+      { fridge: { id: fridge._id, ownerId: fridge.ownerId } }
+    );
+    
     res.status(201).json(fridge);
   } catch (error) {
     console.error("Error creating fridge:", error);
@@ -66,10 +78,22 @@ const addItem = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Add the ingredient object directly to the fridge's ingredients array
-    fridge.ingredients.push({ id, name, category, imageURL, quantity });
+    const newIngredient = { id, name, category, imageURL, quantity };
+    fridge.ingredients.push(newIngredient);
     await fridge.save();
 
-    res.status(201).json({ message: "Ingredient added successfully", ingredient: { id, name, category, imageURL, quantity } });
+    // Log activity - fix owner ID type
+    await logActivity(
+      typeof fridge.ownerId === 'object' && fridge.ownerId !== null 
+        ? fridge.ownerId.toString() 
+        : String(fridge.ownerId),
+      'add',
+      'ingredient',
+      fridgeId,
+      { ingredient: newIngredient }
+    );
+
+    res.status(201).json({ message: "Ingredient added successfully", ingredient: newIngredient });
   } catch (error) {
     console.error("Error adding item to fridge:", error);
     res.status(500).json({ message: "Error adding item to fridge", error });
@@ -101,6 +125,9 @@ const updateItem = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Store old quantity for logging
+    const oldQuantity = ingredient.quantity;
+
     // Update the ingredient's quantity
     ingredient.quantity = quantity;
 
@@ -109,6 +136,21 @@ const updateItem = async (req: Request, res: Response): Promise<void> => {
 
     // Save the updated fridge
     await fridge.save();
+
+    // Log activity - fix owner ID type
+    await logActivity(
+      typeof fridge.ownerId === 'object' && fridge.ownerId !== null 
+        ? fridge.ownerId.toString() 
+        : String(fridge.ownerId),
+      'update',
+      'ingredient',
+      id,
+      { 
+        ingredientId: itemId,
+        oldQuantity,
+        newQuantity: quantity 
+      }
+    );
 
     res.status(200).json({ message: "Ingredient updated successfully", ingredient });
   } catch (error) {
@@ -129,18 +171,29 @@ const deleteItem = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Remove the ingredient from the fridge's ingredients array
-    const initialLength = fridge.ingredients.length;
-    fridge.ingredients = fridge.ingredients.filter((ingredient) => ingredient.id !== itemId);
-
-    // Check if the ingredient was actually removed
-    if (fridge.ingredients.length === initialLength) {
+    // Find the ingredient before removing (for logging)
+    const ingredientToDelete = fridge.ingredients.find(ingredient => ingredient.id === itemId);
+    if (!ingredientToDelete) {
       res.status(404).json({ message: "Ingredient not found in this fridge" });
       return;
     }
 
+    // Remove the ingredient from the fridge's ingredients array
+    fridge.ingredients = fridge.ingredients.filter((ingredient) => ingredient.id !== itemId);
+
     // Save the updated fridge
     await fridge.save();
+
+    // Log activity - fix owner ID type
+    await logActivity(
+      typeof fridge.ownerId === 'object' && fridge.ownerId !== null 
+        ? fridge.ownerId.toString() 
+        : String(fridge.ownerId),
+      'delete',
+      'ingredient',
+      id,
+      { deletedIngredient: ingredientToDelete }
+    );
 
     res.status(200).json({ message: "Ingredient deleted successfully" });
   } catch (error) {
