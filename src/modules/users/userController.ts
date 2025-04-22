@@ -162,8 +162,8 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// Get user by name
-const getUserByName = async(req: Request, res: Response): Promise<void> => {
+// Find users by name
+const findUsersByName = async(req: Request, res: Response): Promise<void> => {
     const query = req.query.query as string;
     if (!query) {
       res.status(400).json({ error: "Query parameter is required" });
@@ -327,7 +327,7 @@ export default {
     googleSignIn,
     login,
     getUserData,
-    getUserByName,
+    findUsersByName,
     updateUser,
     deleteUser,
     refresh,
