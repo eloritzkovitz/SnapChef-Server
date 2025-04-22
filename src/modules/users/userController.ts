@@ -262,6 +262,10 @@ const deleteUser = async (req: Request<{ id: string }>, res: Response): Promise<
             deleteFile(filePath);
         }
 
+        // Delete the user's fridge and cookbook
+        await fridgeModel.findByIdAndDelete(user.fridgeId);
+        await cookbookModel.findByIdAndDelete(user.cookbookId);
+
         // Delete the user from the database
         await userModel.findByIdAndDelete(userId);
 
