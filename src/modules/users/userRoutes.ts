@@ -242,7 +242,7 @@ router.get("/user/:id", authMiddleware, usersController.getUserData);
  *       500:
  *         description: Server error
  */
-router.get("/users", authMiddleware, usersController.getUserByName);
+router.get("/users", authMiddleware, usersController.findUsersByName);
 
 /**
  * @swagger
