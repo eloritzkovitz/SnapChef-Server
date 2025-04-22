@@ -56,8 +56,8 @@ router.post("/recognize/photo", upload.single("file"), (req, res) =>  ingredient
  *       200:
  *         description: Recognized ingredients from receipt
  */
-router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "receipt")
-);
+router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "receipt"));
+
 /**
  * @swagger
  * /api/ingredients/recognize/barcode:
