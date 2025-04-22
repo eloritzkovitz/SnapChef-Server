@@ -200,6 +200,7 @@ router.post("/refresh", usersController.refresh);
  */
 router.get("/user/:id", authMiddleware, usersController.getUserData);
 
+
 /**
  * @swagger
  * /auth/users:
@@ -242,7 +243,7 @@ router.get("/user/:id", authMiddleware, usersController.getUserData);
  *       500:
  *         description: Server error
  */
-router.get("/users", authMiddleware, usersController.getUserByName);
+router.get("/users", authMiddleware, usersController.findUsersByName);
 
 /**
  * @swagger
