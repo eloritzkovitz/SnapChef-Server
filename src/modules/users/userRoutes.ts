@@ -200,6 +200,7 @@ router.post("/refresh", usersController.refresh);
  */
 router.get("/user/:id", authMiddleware, usersController.getUserData);
 
+
 /**
  * @swagger
  * /auth/users:
