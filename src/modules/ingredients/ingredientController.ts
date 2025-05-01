@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import fs from 'fs/promises';
+import path from 'path';
 import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 import  ingredientModel from './Ingredient';
 import { loadIngredientData } from '../../utils/ingredientData';
+
+const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
 
 // Handle ingredient recognition
 export const recognize = async (req: Request, res: Response, type: string): Promise<void> => {
@@ -109,9 +112,58 @@ const getIngredientsByQuery = async (req: Request, res: Response): Promise<void>
   }
 };
 
+// Add a new ingredient
+const addIngredient = async (req: Request, res: Response): Promise<void> => {
+  const { name, category } = req.body;
+
+  if (!name || !category) {
+    res.status(400).json({ message: "Name and category are required." });
+    return;
+  }
+
+  try {
+    // Read the existing data
+    const data = await fs.readFile(ingredientsPath, 'utf-8');
+    const ingredients = JSON.parse(data);
+
+    // Find the highest existing ID and increment it
+    const lastId = ingredients.reduce((maxId: number, ingredient: any) => {
+      const currentId = parseInt(ingredient.id, 10);
+      return currentId > maxId ? currentId : maxId;
+    }, 0);
+
+    const newId = (lastId + 1).toString();
+
+    // Check if the name already exists
+    if (ingredients.some((ingredient: any) => ingredient.name === name)) {
+      res.status(400).json({ message: "Ingredient with this name already exists." });
+      return;
+    }
+
+    // Create the new ingredient
+    const newIngredient = {
+      id: newId,
+      name,
+      category,
+    };
+
+    // Add the new ingredient
+    ingredients.push(newIngredient);
+
+    // Write the updated data back to the file
+    await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), 'utf-8');
+
+    res.status(200).json({ message: "Ingredient added successfully.", ingredient: newIngredient });
+  } catch (error) {
+    console.error("Error adding ingredient:", error);
+    res.status(500).json({ message: "Error adding ingredient." });
+  }
+};
+
 export default {
   recognize,
   getAllIngredients,
   getIngredientById,
-  getIngredientsByQuery,  
+  getIngredientsByQuery,
+  addIngredient,  
 };
