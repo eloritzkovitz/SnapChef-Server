@@ -141,4 +141,36 @@ router.get("/", (req, res) => {
  */
 router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res));
 
+/**
+ * @swagger
+ * /api/ingredients/add:
+ *   post:
+ *     summary: Add a new ingredient
+ *     tags: [Ingredients]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Unique identifier for the ingredient
+ *               name:
+ *                 type: string
+ *                 description: Name of the ingredient
+ *               category:
+ *                 type: string
+ *                 description: Category of the ingredient
+ *     responses:
+ *       200:
+ *         description: Ingredient added successfully
+ *       400:
+ *         description: Ingredient with the same ID already exists
+ *       500:
+ *         description: Error adding ingredient
+ */
+router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
+
 export default router;
