@@ -9,13 +9,14 @@ interface Ingredient {
 
 let ingredientsData: Ingredient[] | null = null;
 
+// Load ingredient data from JSON file
 export async function loadIngredientData(): Promise<Ingredient[]> {
   if (!ingredientsData) {
-    const ingredientsPath = path.resolve(__dirname, '../data/ingredientData.json');
-    console.log('Resolved path:', ingredientsPath);
+    // Resolve the path to the data folder relative to the project root
+    const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');    
 
     try {
-      const data = await fs.promises.readFile(ingredientsPath, 'utf-8');    
+      const data = await fs.promises.readFile(ingredientsPath, 'utf-8');
 
       ingredientsData = JSON.parse(data) as Ingredient[];
 
