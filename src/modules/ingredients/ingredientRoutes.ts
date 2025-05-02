@@ -173,4 +173,67 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  */
 router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
 
+/**
+ * @swagger
+ * /api/ingredients/{id}:
+ *   put:
+ *     summary: Edit an existing ingredient
+ *     tags: [Ingredients]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the ingredient to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: New name of the ingredient
+ *               category:
+ *                 type: string
+ *                 description: New category of the ingredient
+ *     responses:
+ *       200:
+ *         description: Ingredient updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Ingredient not found
+ *       500:
+ *         description: Error editing ingredient
+ */
+router.put("/:id", (req, res) => ingredientController.editIngredient(req, res));
+
+/**
+ * @swagger
+ * /api/ingredients/{id}:
+ *   delete:
+ *     summary: Delete an ingredient
+ *     tags: [Ingredients]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the ingredient to delete
+ *     responses:
+ *       200:
+ *         description: Ingredient deleted successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Ingredient not found
+ *       500:
+ *         description: Error deleting ingredient
+ */
+router.delete("/:id", (req, res) => ingredientController.deleteIngredient(req, res));
+
 export default router;

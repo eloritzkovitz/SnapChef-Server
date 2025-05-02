@@ -772,7 +772,7 @@
   {
     "id": "10000154",
     "name": "Maple Syrup",
-    "category": "Baking & Cooking"
+    "category": "Condiments & Sauces"
   },
   {
     "id": "10000155",
@@ -1628,5 +1628,60 @@
     "id": "10000325",
     "name": "Cracker",
     "category": "Baked Goods"
+  },
+  {
+    "id": "10000326",
+    "name": "Cooking Cream",
+    "category": "Dairy"
+  },
+  {
+    "id": "10000327",
+    "name": "Powdered Milk",
+    "category": "Dairy"
+  },
+  {
+    "id": "10000328",
+    "name": "Bouillon Cube",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000329",
+    "name": "Dijon Mustard",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000330",
+    "name": "Fish Sauce",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000331",
+    "name": "Tzatziki",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000332",
+    "name": "Miso",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000333",
+    "name": "Salsa Verde",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000334",
+    "name": "Marmelade",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000335",
+    "name": "Amba",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000336",
+    "name": "Aioli",
+    "category": "Condiments & Sauces"
   }
 ]
