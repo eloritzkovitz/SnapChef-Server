@@ -627,7 +627,7 @@
   {
     "id": "10000125",
     "name": "Macaroni",
-    "category": "Grains & Legumes"
+    "category": "Pasta & Noodles"
   },
   {
     "id": "10000126",
@@ -637,7 +637,7 @@
   {
     "id": "10000127",
     "name": "Noodles",
-    "category": "Grains & Legumes"
+    "category": "Pasta & Noodles"
   },
   {
     "id": "10000128",
@@ -647,12 +647,12 @@
   {
     "id": "10000129",
     "name": "Pasta",
-    "category": "Grains & Legumes"
+    "category": "Pasta & Noodles"
   },
   {
     "id": "10000130",
     "name": "Ramen",
-    "category": "Grains & Legumes"
+    "category": "Pasta & Noodles"
   },
   {
     "id": "10000131",
@@ -672,7 +672,7 @@
   {
     "id": "10000134",
     "name": "Spaghetti",
-    "category": "Grains & Legumes"
+    "category": "Pasta & Noodles"
   },
   {
     "id": "10000135",
@@ -856,27 +856,27 @@
   },
   {
     "id": "10000171",
-    "name": "Ricotta",
+    "name": "Ricotta Cheese",
     "category": "Dairy"
   },
   {
     "id": "10000172",
-    "name": "Mozzarella",
+    "name": "Mozzarella Cheese",
     "category": "Dairy"
   },
   {
     "id": "10000173",
-    "name": "Cheddar",
+    "name": "Cheddar Cheese",
     "category": "Dairy"
   },
   {
     "id": "10000174",
-    "name": "Parmesan",
+    "name": "Parmesan Cheese",
     "category": "Dairy"
   },
   {
     "id": "10000175",
-    "name": "Gouda",
+    "name": "Gouda Cheese",
     "category": "Dairy"
   },
   {
@@ -1351,7 +1351,7 @@
   },
   {
     "id": "10000270",
-    "name": "Lamb Chops",
+    "name": "Pork Chops",
     "category": "Meat & Poultry"
   },
   {
@@ -1478,5 +1478,155 @@
     "id": "10000295",
     "name": "Anchovy",
     "category": "Fish & Seafood"
-  }  
+  },
+  {
+    "id": "10000296",
+    "name": "Instant Pudding",
+    "category": "Baking & Cooking"
+  },
+  {
+    "id": "10000297",
+    "name": "Tofu",
+    "category": "Grains & Legumes"
+  },
+  {
+    "id": "10000298",
+    "name": "Tomato Paste",
+    "category": "Condiments & Sauces"
+  },
+  {
+    "id": "10000299",
+    "name": "Yellow Cheese",
+    "category": "Dairy"
+  },
+  {
+    "id": "10000300",
+    "name": "White Cheese",
+    "category": "Dairy"
+  },
+  {
+    "id": "10000301",
+    "name": "Allspice",
+    "category": "Herbs & Spices"
+  },
+  {
+    "id": "10000302",
+    "name": "Mulberry",
+    "category": "Fruits"
+  },
+  {
+    "id": "10000303",
+    "name": "Loquat",
+    "category": "Fruits"
+  },
+  {
+    "id": "10000304",
+    "name": "Gooseberry",
+    "category": "Fruits"
+  },
+  {
+    "id": "10000305",
+    "name": "Elderberry",
+    "category": "Fruits"
+  },
+  {
+    "id": "10000306",
+    "name": "Dragon Fruit",
+    "category": "Fruits"
+  },
+  {
+    "id": "10000307",
+    "name": "Celeriac",
+    "category": "Vegetables"
+  },
+  {
+    "id": "10000308",
+    "name": "Lotus Root",
+    "category": "Vegetables"
+  },
+  {
+    "id": "10000309",
+    "name": "Savory",
+    "category": "Herbs & Spices"
+  },
+  {
+    "id": "10000310",
+    "name": "Jalapeño",
+    "category": "Herbs & Spices"
+  },
+  {
+    "id": "10000311",
+    "name": "Lemon Balm",
+    "category": "Herbs & Spices"
+  },
+  {
+    "id": "10000312",
+    "name": "Curry Powder",
+    "category": "Herbs & Spices"
+  },
+  {
+    "id": "10000313",
+    "name": "Garam Masala",
+    "category": "Herbs & Spices"
+  },
+  {
+    "id": "10000314",
+    "name": "Lamb Ribs",
+    "category": "Meat & Poultry"
+  },
+  {
+    "id": "10000315",
+    "name": "Lamb Chops",
+    "category": "Meat & Poultry"
+  },
+  {
+    "id": "10000316",
+    "name": "Bread",
+    "category": "Baked Goods"
+  },
+  {
+    "id": "10000317",
+    "name": "Pita",
+    "category": "Baked Goods"
+  },
+  {
+    "id": "10000318",
+    "name": "Biscuits",
+    "category": "Baked Goods"
+  },
+  {
+    "id": "10000319",
+    "name": "Flatbread",
+    "category": "Baked Goods"
+  },
+  {
+    "id": "10000320",
+    "name": "Semolina",
+    "category": "Grains & Legumes"
+  },
+  {
+    "id": "10000321",
+    "name": "Lasagna Sheets",
+    "category": "Pasta & Noodles"
+  },
+  {
+    "id": "10000322",
+    "name": "Penne",
+    "category": "Pasta & Noodles"
+  },
+  {
+    "id": "10000323",
+    "name": "Cannelloni",
+    "category": "Pasta & Noodles"
+  },
+  {
+    "id": "10000324",
+    "name": "Tortellini",
+    "category": "Pasta & Noodles"
+  },
+  {
+    "id": "10000325",
+    "name": "Cracker",
+    "category": "Baked Goods"
+  }
 ]
