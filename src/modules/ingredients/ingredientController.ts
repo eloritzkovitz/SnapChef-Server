@@ -112,7 +112,7 @@ const getIngredientsByQuery = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Add a new ingredient
+// Add a new ingredient to the database
 const addIngredient = async (req: Request, res: Response): Promise<void> => {
   const { name, category } = req.body;
 
@@ -123,7 +123,7 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
 
   try {
     // Read the existing data
-    const data = await fs.readFile(ingredientsPath, 'utf-8');
+    const data = await fs.readFile(ingredientsPath, "utf-8");
     const ingredients = JSON.parse(data);
 
     // Find the highest existing ID and increment it
@@ -151,12 +151,83 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
     ingredients.push(newIngredient);
 
     // Write the updated data back to the file
-    await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), 'utf-8');
+    await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
-    res.status(200).json({ message: "Ingredient added successfully.", ingredient: newIngredient });
+    // Return the new ingredient directly
+    res.status(201).json(newIngredient);
   } catch (error) {
     console.error("Error adding ingredient:", error);
     res.status(500).json({ message: "Error adding ingredient." });
+  }
+};
+
+// Edit an existing ingredient in the database
+const editIngredient = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { name, category } = req.body;
+
+  if (!id || (!name && !category)) {
+    res.status(400).json({ message: "ID and at least one field (name or category) are required." });
+    return;
+  }
+
+  try {
+    // Read the existing data
+    const data = await fs.readFile(ingredientsPath, "utf-8");
+    const ingredients = JSON.parse(data);
+
+    // Find the ingredient by ID
+    const ingredientIndex = ingredients.findIndex((ingredient: any) => ingredient.id === id);
+    if (ingredientIndex === -1) {
+      res.status(404).json({ message: "Ingredient not found." });
+      return;
+    }
+
+    // Update the ingredient
+    if (name) ingredients[ingredientIndex].name = name;
+    if (category) ingredients[ingredientIndex].category = category;
+
+    // Write the updated data back to the file
+    await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
+
+    res.status(200).json({ message: "Ingredient updated successfully.", ingredient: ingredients[ingredientIndex] });
+  } catch (error) {
+    console.error("Error editing ingredient:", error);
+    res.status(500).json({ message: "Error editing ingredient." });
+  }
+};
+
+// Delete an ingredient from the database
+const deleteIngredient = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  if (!id) {
+    res.status(400).json({ message: "ID is required." });
+    return;
+  }
+
+  try {
+    // Read the existing data
+    const data = await fs.readFile(ingredientsPath, "utf-8");
+    const ingredients = JSON.parse(data);
+
+    // Find the ingredient by ID
+    const ingredientIndex = ingredients.findIndex((ingredient: any) => ingredient.id === id);
+    if (ingredientIndex === -1) {
+      res.status(404).json({ message: "Ingredient not found." });
+      return;
+    }
+
+    // Remove the ingredient
+    const deletedIngredient = ingredients.splice(ingredientIndex, 1);
+
+    // Write the updated data back to the file
+    await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
+
+    res.status(200).json({ message: "Ingredient deleted successfully.", ingredient: deletedIngredient });
+  } catch (error) {
+    console.error("Error deleting ingredient:", error);
+    res.status(500).json({ message: "Error deleting ingredient." });
   }
 };
 
@@ -165,5 +236,7 @@ export default {
   getAllIngredients,
   getIngredientById,
   getIngredientsByQuery,
-  addIngredient,  
+  addIngredient,
+  editIngredient,  
+  deleteIngredient,
 };
