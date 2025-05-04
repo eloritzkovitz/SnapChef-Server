@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { createRecipe } from './recipeGeneration';
 import { getImageFromPexels } from './pexelsImage';
 
+// Generate a recipe based on the provided ingredients using Google Gemini API
 export const generateRecipe = async (req: Request, res: Response): Promise<void> => {
   const { ingredients } = req.body;
 
