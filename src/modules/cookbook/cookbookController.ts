@@ -32,7 +32,7 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
       description,
       mealType: recipeData.mealType || "Unknown",
       cuisineType: recipeData.cuisineType || "Unknown",
-      difficulty: recipeData.difficulty || "Medium",
+      difficulty: recipeData.difficulty || "Unknown",
       cookingTime: recipeData.cookingTime || 30,
       prepTime: recipeData.prepTime || 10,
       ingredients: recipeData.ingredients || [],
