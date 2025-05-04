@@ -30,15 +30,15 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
       _id: new mongoose.Types.ObjectId().toString(),
       title,
       description,
-      mealType: recipeData.mealType || "Unknown",
-      cuisineType: recipeData.cuisineType || "Unknown",
-      difficulty: recipeData.difficulty || "Unknown",
+      mealType: recipeData.mealType || "N/A",
+      cuisineType: recipeData.cuisineType || "N/A",
+      difficulty: recipeData.difficulty || "N/A",
       cookingTime: recipeData.cookingTime || 0,
       prepTime: recipeData.prepTime || 0,
       ingredients: recipeData.ingredients || [],
       instructions: recipeData.instructions || [],
       imageURL: recipeData.imageURL || "",
-      rating: recipeData.rating || null,
+      rating: recipeData.rating || 0.0,
     };
 
     // Add the recipe to the cookbook
