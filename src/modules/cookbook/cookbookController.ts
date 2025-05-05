@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import cookbookModel from "./Cookbook";
+import { logActivity } from "../../utils/logService";
 
 // Add a recipe to a cookbook
 const addRecipe = async (req: Request, res: Response): Promise<void> => {
@@ -9,12 +10,11 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
     const recipeData = req.body;
 
     const cookbook = await cookbookModel.findById(cookbookId);
-
     if (!cookbook) {
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
-
+    
     // Validate required fields
     if (!recipeData.title || !recipeData.description) {
       res.status(400).json({ message: "Title and description are required." });
@@ -47,6 +47,15 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
     // Save the updated cookbook
     await cookbook.save();
 
+    // Log the activity
+    await logActivity(
+      String(cookbook.ownerId),
+      "add",
+      "recipe",
+      String(cookbook._id),
+      { recipe: recipeData }
+    );
+
     res.status(200).json({ message: "Recipe added to cookbook", cookbook });
   } catch (error) {
     console.error("Error adding recipe to cookbook:", error);
@@ -64,25 +73,32 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     const updatedRecipeData = req.body;
 
     const cookbook = await cookbookModel.findById(cookbookId);
-
     if (!cookbook) {
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
 
-    // Find the recipe by _id
     const recipeIndex = cookbook.recipes.findIndex((recipe) => recipe._id === recipeId);
-
     if (recipeIndex === -1) {
       res.status(404).json({ message: "Recipe not found in cookbook" });
       return;
     }
 
-    // Update the recipe
-    cookbook.recipes[recipeIndex] = { ...cookbook.recipes[recipeIndex], ...updatedRecipeData };
-
-    // Save the updated cookbook
+    const oldRecipe = cookbook.recipes[recipeIndex];
+    cookbook.recipes[recipeIndex] = { ...oldRecipe, ...updatedRecipeData };
     await cookbook.save();
+
+    await logActivity(
+      String(cookbook.ownerId),
+      "update",
+      "recipe",
+      String(cookbook._id),
+      {
+        recipeId,
+        oldRecipe,
+        updatedRecipe: cookbook.recipes[recipeIndex]
+      }
+    );
 
     res.status(200).json({ message: "Recipe updated in cookbook", recipe: cookbook.recipes[recipeIndex] });
   } catch (error) {
@@ -91,23 +107,32 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Remove a recipe from a cookbook
 const removeRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
     const { cookbookId, recipeId } = req.params;
 
     const cookbook = await cookbookModel.findById(cookbookId);
-
     if (!cookbook) {
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
 
-    // Filter out the recipe by _id
-    cookbook.recipes = cookbook.recipes.filter((recipe) => recipe._id !== recipeId);
+    const recipeToDelete = cookbook.recipes.find((r) => r._id === recipeId);
+    if (!recipeToDelete) {
+      res.status(404).json({ message: "Recipe not found in cookbook" });
+      return;
+    }
 
-    // Save the updated cookbook
+    cookbook.recipes = cookbook.recipes.filter((recipe) => recipe._id !== recipeId);
     await cookbook.save();
+
+    await logActivity(
+      String(cookbook.ownerId),
+      "delete",
+      "recipe",
+      String(cookbook._id),
+      { deletedRecipe: recipeToDelete }
+    );
 
     res.status(200).json({ message: "Recipe removed from cookbook", cookbook });
   } catch (error) {
@@ -122,11 +147,19 @@ const getCookbookContent = async (req: Request, res: Response): Promise<void> =>
     const { cookbookId } = req.params;
 
     const cookbook = await cookbookModel.findById(cookbookId);
-
     if (!cookbook) {
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
+    
+    // Log the activity 
+    await logActivity(
+      String(cookbook.ownerId),
+      "read",
+      "cookbook",
+      String(cookbook._id),
+      {}
+    );
 
     res.status(200).json({ cookbook });
   } catch (error) {

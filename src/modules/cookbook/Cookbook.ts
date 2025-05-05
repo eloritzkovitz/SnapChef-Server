@@ -17,18 +17,18 @@ interface Recipe {
 }
 
 interface Cookbook extends Document {  
-  ownerId: Schema.Types.ObjectId,
-  recipes: Recipe[]; 
+  ownerId: Schema.Types.ObjectId;
+  recipes: Recipe[];
 }
 
 const CookbookSchema: Schema = new Schema(
-  {    
-    ownerId: { type: Schema.Types.ObjectId, ref: 'Users', required: true }, 
-    recipes: { type: [Object], default: [] },
+  {
+    ownerId: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+    recipes: { type: [Object], default: [] }
   },
   { timestamps: true }
 );
 
-const cookbookModel = mongoose.model<Cookbook>("Cookbooks", CookbookSchema);
+const cookbookModel = mongoose.model<Cookbook>('Cookbooks', CookbookSchema);
 
 export default cookbookModel;
