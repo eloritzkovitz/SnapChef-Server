@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { createRecipe } from './recipeGeneration';
 import { getImageFromPexels } from './pexelsImage';
-import { logActivity } from '../../utils/logService';
 
 // Generate a recipe based on the provided ingredients using Google Gemini API
 export const generateRecipe = async (req: Request, res: Response): Promise<void> => {
@@ -22,19 +21,6 @@ export const generateRecipe = async (req: Request, res: Response): Promise<void>
       console.warn("Failed to fetch image from Pexels. Returning recipe without image.");
       imageUrl = "https://via.placeholder.com/400x300?text=No+Image"; 
     }
-
-    
-    await logActivity(
-      (req as any).user?.id,
-      'generate',
-      'recipe',
-      undefined, 
-      {
-        ingredients,
-        generatedRecipe: recipe,
-        imageUrl
-      }
-    );
 
     res.json({ recipe, imageUrl });
   } catch (error) {
