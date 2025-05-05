@@ -1,16 +1,18 @@
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI, GenerateContentResult } from '@google/generative-ai';
 
+// Load environment variables and API key from .env file
 dotenv.config();
-
 const apiKey = process.env.GEMINI_API_KEY;
 
 if (!apiKey) {
   throw new Error('GEMINI_API_KEY must be defined in .env');
 }
 
+// Initialize Google Generative AI client with the API key
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// Generate a recipe based on the provided ingredients using Google Gemini API
 const createRecipe = async (ingredients: string): Promise<string> => {
   try {
     const prompt = `Create a recipe using the following ingredients: ${ingredients}. Please provide instructions, cooking time, and serving suggestions.`;
