@@ -7,10 +7,10 @@ import fridgeModel from '../fridge/Fridge';
 import cookbookModel from '../cookbook/Cookbook';
 import { deleteFile } from '../../utils/fileService';
 import { generateToken, verifyRefreshToken } from '../../utils/tokenService';
-import { logActivity } from '../../utils/logService';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Google sign-in
 const googleSignIn = async (req: Request, res: Response) => {
     try {
         const { idToken } = req.body;
@@ -19,7 +19,10 @@ const googleSignIn = async (req: Request, res: Response) => {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        if (!payload) return res.status(400).send('Invalid Google ID token');
+        if (!payload) {
+            res.status(400).send('Invalid Google ID token');
+            return;
+        }
 
         const { sub, email, given_name, family_name, picture } = payload;
         let user = await userModel.findOne({ email });
@@ -29,41 +32,64 @@ const googleSignIn = async (req: Request, res: Response) => {
                 firstName: given_name,
                 lastName: family_name,
                 email,
-                password: sub,
+                password: sub, // Use Google sub as a placeholder password
                 profilePicture: picture,
                 joinDate: new Date().toISOString()
             });
         }
 
         const tokens = generateToken(user._id);
-        if (!tokens) return res.status(500).send('Token generation failed');
+        if (!tokens) {
+            res.status(500).send('Server Error');
+            return;
+        }
 
-        user.refreshToken?.push(tokens.refreshToken);
+        if (!user.refreshToken) {
+            user.refreshToken = [];
+        }
+        user.refreshToken.push(tokens.refreshToken);
         await user.save();
 
-        await logActivity(user._id.toString(), 'login', 'user', user._id.toString(), { source: 'google' });
-
-        res.status(200).send({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, _id: user._id });
+        res.status(200).send({
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            _id: user._id
+        });
     } catch (err) {
         res.status(400).send(err);
+        return;
     }
 };
 
+// Register function
 const register = async (req: Request, res: Response) => {
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const password = req.body.password;
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        const profilePicture = ""; 
         const user = await userModel.create({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
             password: hashedPassword,
-            profilePicture: "",
-            joinDate: new Date().toISOString()
+            profilePicture,
+            joinDate: new Date().toISOString()        
         });
 
-        const fridge = await fridgeModel.create({ ownerId: user._id, ingredients: [] });
-        const cookbook = await cookbookModel.create({ ownerId: user._id, recipes: [] });
+        // Create a fridge for the user
+        const fridge = await fridgeModel.create({
+            ownerId: user._id,
+            ingredients: []
+        });
 
+        // Create a cookbook for the user
+        const cookbook = await cookbookModel.create({
+            ownerId: user._id,
+            recipes: []
+        });
+
+        // Associate the fridge and cookbook IDs with the user
         user.fridgeId = fridge._id as any;
         user.cookbookId = cookbook._id as any;
         await user.save();
@@ -74,36 +100,61 @@ const register = async (req: Request, res: Response) => {
     }
 };
 
+// Login function
 const login = async (req: Request, res: Response) => {
     try {
         const user = await userModel.findOne({ email: req.body.email });
-        if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-            return res.status(400).send('Wrong username or password');
+        if (!user) {
+            res.status(400).send('Wrong username or password');
+            return;
         }
-
+        const validPassword = await bcrypt.compare(req.body.password, user.password);
+        if (!validPassword) {
+            res.status(400).send('Wrong username or password');
+            return;
+        }
+        if (!process.env.TOKEN_SECRET) {
+            res.status(500).send('Server Error');
+            return;
+        }
+        
+        // generate token
         const tokens = generateToken(user._id);
-        if (!tokens) return res.status(500).send('Token generation failed');
-
-        user.refreshToken?.push(tokens.refreshToken);
+        if (!tokens) {
+            res.status(500).send('Server Error');
+            return;
+        }
+        if (!user.refreshToken) {
+            user.refreshToken = [];
+        }
+        user.refreshToken.push(tokens.refreshToken);
         await user.save();
+        res.status(200).send(
+            {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                _id: user._id
+            });
 
-        await logActivity(user._id.toString(), 'login', 'user', user._id.toString(), {});
-
-        res.status(200).send({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, _id: user._id });
     } catch (err) {
         res.status(400).send(err);
     }
 };
 
+// Get user data
 const getUserData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.params.id || req.params.userId;
+        const requestedUserId = req.params.id;
+        const authenticatedUserId = req.params.userId;
+
+        // Use the requested ID if available, otherwise fallback to the authenticated user
+        const userId = requestedUserId || authenticatedUserId;
+
         const user = await userModel.findById(userId).select('-password');
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
-          }
-        await logActivity(userId, 'read', 'user', userId, {});
+        }
 
         res.json(user);
     } catch (error) {
@@ -111,70 +162,111 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const findUsersByName = async (req: Request, res: Response): Promise<void> => {
+// Find users by name
+const findUsersByName = async(req: Request, res: Response): Promise<void> => {
     const query = req.query.query as string;
     if (!query) {
-        res.status(400).json({ error: "Query parameter is required" });
-        return;
-      }
-      
+      res.status(400).json({ error: "Query parameter is required" });
+      return;
+    }
+  
     try {
         const users = await userModel.find({
-            $or: [
-                { firstName: { $regex: query, $options: "i" } },
-                { lastName: { $regex: query, $options: "i" } },
-            ]
-        }).select("_id firstName lastName profilePicture");
-
-        res.json(users);
+          $or: [
+            { firstName: { $regex: query, $options: "i" } },
+            { lastName: { $regex: query, $options: "i" } },  
+          ],
+      }).select("_id firstName lastName profilePicture");
+      res.json(users);
     } catch (error) {
-        res.status(500).json({ error: "Error fetching users" });
+      res.status(500).json({ error: "Error fetching users" });
     }
 };
 
-const updateUser = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+interface UpdateUserRequestBody {
+    firstName?: string;
+    lastName?: string;
+    headline?: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+    password?: string;
+    profilePicture?: string;
+}
+  
+// Update user data
+const updateUser = async (req: Request<{ id: string }, {}, UpdateUserRequestBody>, res: Response): Promise<void> => {
     try {
-        const user = await userModel.findById(req.params.id);
-        if (!user) {
-            res.status(404).json({ message: 'User not found' });
-            return;
-          }
-          
-        Object.assign(user, req.body);
-        if (req.body.password) user.password = await bcrypt.hash(req.body.password, 10);
-
-        if (req.file || req.body.profilePicture === "") {
-            if (user.profilePicture && user.profilePicture !== "") {
-                deleteFile(path.resolve(__dirname, '../../uploads', path.basename(user.profilePicture)));
-            }
-            user.profilePicture = req.file ? `/uploads/${req.file.filename}` : "";
+      const userId = req.params.id;
+      const user = await userModel.findById(userId);
+      if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+  
+      // Update user details
+      if (req.body.firstName !== undefined) user.firstName = req.body.firstName;
+      if (req.body.lastName !== undefined) user.lastName = req.body.lastName;
+      if (req.body.headline !== undefined) user.headline = req.body.headline;
+      if (req.body.bio !== undefined) user.bio = req.body.bio;
+      if (req.body.location !== undefined) user.location = req.body.location;      
+      if (req.body.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+      }
+      
+      // Update profile picture
+      if (req.file || req.body.profilePicture === "") {
+        // Check if the old profile picture needs to be deleted
+        if (user.profilePicture && user.profilePicture !== "") {
+            // Construct the absolute path to the file
+            const filePath = path.resolve(__dirname, '../../uploads', path.basename(user.profilePicture));
+            console.log(`Deleting file: ${filePath}`);
+            deleteFile(filePath);
         }
-
-        await user.save();
-
-        await logActivity(user._id.toString(), 'update', 'user', user._id.toString(), req.body);
-
-        res.json({ ...user.toObject() });
+    
+        // Update the profile picture based on the input
+        if (req.file) {
+            user.profilePicture = `/uploads/${req.file.filename}`; // Store relative path
+        } else {
+            user.profilePicture = ""; // Set to default image
+        }
+      }
+      
+      // Save the updated user data
+      await user.save();  
+      
+      res.json({
+        ...user.toObject()        
+      });      
     } catch (error) {
-        res.status(500).json({ message: 'Error updating user data', error });
+      res.status(500).json({ message: 'Error updating user data', error });
     }
 };
 
+// Delete user data
 const deleteUser = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
     try {
         const userId = req.params.id;
         const user = await userModel.findById(userId);
+
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
-          }
-
-        if (user.profilePicture && user.profilePicture !== "") {
-            deleteFile(path.resolve(__dirname, '../../uploads', path.basename(user.profilePicture)));
         }
 
+        // Delete user's profile picture if it exists
+        if (user.profilePicture && user.profilePicture !== "") {
+            const filePath = path.resolve(__dirname, '../../uploads', path.basename(user.profilePicture));
+            console.log(`Deleting file: ${filePath}`);
+            deleteFile(filePath);
+        }
+
+        // Delete the user's fridge and cookbook
         await fridgeModel.findByIdAndDelete(user.fridgeId);
         await cookbookModel.findByIdAndDelete(user.cookbookId);
+
+        // Delete the user from the database
         await userModel.findByIdAndDelete(userId);
 
         res.status(200).json({ message: 'User deleted successfully' });
@@ -183,12 +275,17 @@ const deleteUser = async (req: Request<{ id: string }>, res: Response): Promise<
     }
 };
 
+// Logout function
 const logout = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).json({ message: "Refresh token is required" });
+
+    if (!refreshToken) {
+        res.status(400).json({ message: "Refresh token is required" });
+        return;
+    }
 
     try {
-        const user = await verifyRefreshToken(refreshToken);
+        const user = await verifyRefreshToken(refreshToken);        
         await user.save();
         res.status(200).send("success");
     } catch (err) {
@@ -196,17 +293,25 @@ const logout = async (req: Request, res: Response) => {
     }
 };
 
+// Refresh function
 const refresh = async (req: Request, res: Response) => {
     try {
         const user = await verifyRefreshToken(req.body.refreshToken);
-        if (!user) return res.status(400).send("fail");
-
+        if (!user) {
+            res.status(400).send("fail");
+            return;
+        }
         const tokens = generateToken(user._id);
-        if (!tokens) return res.status(500).send("Token generation failed");
 
-        user.refreshToken?.push(tokens.refreshToken);
+        if (!tokens) {
+            res.status(500).send('Server Error');
+            return;
+        }
+        if (!user.refreshToken) {
+            user.refreshToken = [];
+        }
+        user.refreshToken.push(tokens.refreshToken);
         await user.save();
-
         res.status(200).send({
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
