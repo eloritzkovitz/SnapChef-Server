@@ -47,7 +47,7 @@ const googleSignIn = async (req: Request, res: Response) => {
     }
 
     // Set the latest refresh token (overwrite any existing one)
-    user.refreshToken = tokens.refreshToken; // Store only the latest refresh token
+    user.refreshToken = tokens.refreshToken;
     await user.save();
 
     // Send back the tokens to the client
@@ -111,10 +111,7 @@ const login = async (req: Request, res: Response) => {
     }
 
     // Validate password
-    const validPassword = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
+    const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) {
       res.status(400).send("Wrong username or password");
       return;
@@ -133,8 +130,8 @@ const login = async (req: Request, res: Response) => {
       return;
     }
 
-    // Set the latest refresh token (overwrite any existing one)
-    user.refreshToken = tokens.refreshToken; // Store only the latest refresh token
+    // Set the latest refresh token
+    user.refreshToken = tokens.refreshToken;
     await user.save();
 
     // Send back the tokens to the client
@@ -362,6 +359,6 @@ export default {
   findUsersByName,
   updateUser,
   deleteUser,
-  refresh,
   logout,
+  refresh,  
 };
