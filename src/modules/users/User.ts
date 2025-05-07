@@ -11,7 +11,7 @@ export interface IUser {
   bio?: string
   location?: string;  
   joinDate?: string;  
-  refreshToken?: string[];
+  refreshToken?: string;
   fridgeId: mongoose.Schema.Types.ObjectId;
   cookbookId: mongoose.Schema.Types.ObjectId;
 }
@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
   joinDate: { type: String, required: true },
   fridgeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fridge' },
   cookbookId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cookbook' },
-  refreshToken: { type: [String], default: [] }
+  refreshToken: { type: String, default: "" }
 });
 
 const userModel = mongoose.model<IUser>("Users", userSchema);
