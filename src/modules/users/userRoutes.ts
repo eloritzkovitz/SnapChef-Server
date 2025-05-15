@@ -200,7 +200,6 @@ router.post("/refresh", usersController.refresh);
  */
 router.get("/user/:id", authMiddleware, usersController.getUserData);
 
-
 /**
  * @swagger
  * /auth/users:
@@ -295,6 +294,144 @@ router.get("/users", authMiddleware, usersController.findUsersByName);
  *         description: Server error
  */
 router.put("/user/:id", authMiddleware, upload.single("profilePicture"), usersController.updateUser);
+
+/**
+ * @swagger
+ * /auth/user/{userId}/preferences:
+ *   put:
+ *     summary: Update user preferences
+ *     description: Update user preferences such as allergies and dietary preferences.
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               allergies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: List of allergies
+ *                 example: ["peanuts", "shellfish"]
+ *               dietaryPreferences:
+ *                 type: object
+ *                 properties:
+ *                   vegan:
+ *                     type: boolean
+ *                     example: true
+ *                   vegetarian:
+ *                     type: boolean
+ *                     example: false
+ *                   pescatarian:
+ *                     type: boolean
+ *                     example: false
+ *                   carnivore:
+ *                     type: boolean
+ *                     example: false
+ *                   ketogenic:
+ *                     type: boolean
+ *                     example: false
+ *                   paleo:
+ *                     type: boolean
+ *                     example: false
+ *                   lowCarb:
+ *                     type: boolean
+ *                     example: false
+ *                   lowFat:
+ *                     type: boolean
+ *                     example: false
+ *                   glutenFree:
+ *                     type: boolean
+ *                     example: false
+ *                   dairyFree:
+ *                     type: boolean
+ *                     example: false
+ *                   kosher:
+ *                     type: boolean
+ *                     example: false
+ *                   halal:
+ *                     type: boolean
+ *                     example: false
+ *     responses:
+ *       200:
+ *         description: Preferences updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Preferences updated successfully
+ *                 preferences:
+ *                   type: object
+ *                   properties:
+ *                     allergies:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["peanuts", "shellfish"]
+ *                     dietaryPreferences:
+ *                       type: object
+ *                       properties:
+ *                         vegan:
+ *                           type: boolean
+ *                           example: true
+ *                         vegetarian:
+ *                           type: boolean
+ *                           example: false
+ *                         pescatarian:
+ *                           type: boolean
+ *                           example: false
+ *                         carnivore:
+ *                           type: boolean
+ *                           example: false
+ *                         ketogenic:
+ *                           type: boolean
+ *                           example: false
+ *                         paleo:
+ *                           type: boolean
+ *                           example: false
+ *                         lowCarb:
+ *                           type: boolean
+ *                           example: false
+ *                         lowFat:
+ *                           type: boolean
+ *                           example: false
+ *                         glutenFree:
+ *                           type: boolean
+ *                           example: false
+ *                         dairyFree:
+ *                           type: boolean
+ *                           example: false
+ *                         kosher:
+ *                           type: boolean
+ *                           example: false
+ *                         halal:
+ *                           type: boolean
+ *                           example: false
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.put("/user/:id/preferences", authMiddleware, usersController.updatePreferences);
 
 /**
  * @swagger
