@@ -6,10 +6,7 @@ export interface IUser {
   lastName: string;
   email: string;
   password: string;
-  profilePicture?: string;
-  headline?: string;
-  bio?: string
-  location?: string;  
+  profilePicture?: string;    
   joinDate?: string;  
   refreshToken?: string;
   fridgeId: mongoose.Schema.Types.ObjectId;
