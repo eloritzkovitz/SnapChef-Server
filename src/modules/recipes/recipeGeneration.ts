@@ -12,10 +12,48 @@ if (!apiKey) {
 // Initialize Google Generative AI client with the API key
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// Options interface for recipe generation
+interface RecipeOptions {
+  mealType?: string;
+  cuisine?: string;
+  difficulty?: string;
+  cookingTime?: number;
+  prepTime?: number;
+  preferences?: {
+    allergies?: string[];
+    dietaryPreferences?: Record<string, boolean>;
+  };
+}
+
 // Generate a recipe based on the provided ingredients using Google Gemini API
-const createRecipe = async (ingredients: string): Promise<string> => {
+const createRecipe = async (ingredients: string, options?: RecipeOptions): Promise<string> => {
   try {
-    const prompt = `Create a recipe using the following ingredients: ${ingredients}. Please provide instructions, cooking time, and serving suggestions.`;
+    let prompt = `Create a recipe using the following ingredients: ${ingredients}.`;
+
+    if (options) {
+      if (options.mealType) prompt += ` Meal type: ${options.mealType}.`;
+      if (options.cuisine) prompt += ` Cuisine: ${options.cuisine}.`;
+      if (options.difficulty) prompt += ` Difficulty: ${options.difficulty}.`;
+      if (options.cookingTime) prompt += ` Cooking time: ${options.cookingTime} minutes.`;
+      if (options.prepTime) prompt += ` Prep time: ${options.prepTime} minutes.`;
+
+      // Add user preferences
+      if (options.preferences) {
+        if (options.preferences.allergies && options.preferences.allergies.length > 0) {
+          prompt += ` Avoid these allergens: ${options.preferences.allergies.join(", ")}.`;
+        }
+        if (options.preferences.dietaryPreferences) {
+          const activePrefs = Object.entries(options.preferences.dietaryPreferences)
+            .filter(([_, v]) => v)
+            .map(([k]) => k);
+          if (activePrefs.length > 0) {
+            prompt += ` Dietary preferences: ${activePrefs.join(", ")}.`;
+          }
+        }
+      }
+    }
+
+    prompt += " Please provide instructions, cooking time, and serving suggestions.";    
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const result: GenerateContentResult = await model.generateContent([prompt]);
