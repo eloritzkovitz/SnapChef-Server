@@ -17,8 +17,8 @@ interface RecipeOptions {
   mealType?: string;
   cuisine?: string;
   difficulty?: string;
-  cookingTime?: number;
   prepTime?: number;
+  cookingTime?: number;  
   preferences?: {
     allergies?: string[];
     dietaryPreferences?: Record<string, boolean>;
@@ -34,8 +34,8 @@ const createRecipe = async (ingredients: string, options?: RecipeOptions): Promi
       if (options.mealType) prompt += ` Meal type: ${options.mealType}.`;
       if (options.cuisine) prompt += ` Cuisine: ${options.cuisine}.`;
       if (options.difficulty) prompt += ` Difficulty: ${options.difficulty}.`;
-      if (options.cookingTime) prompt += ` Cooking time: ${options.cookingTime} minutes.`;
       if (options.prepTime) prompt += ` Prep time: ${options.prepTime} minutes.`;
+      if (options.cookingTime) prompt += ` Cooking time: ${options.cookingTime} minutes.`;      
 
       // Add user preferences
       if (options.preferences) {
