@@ -8,8 +8,8 @@ interface Recipe {
   mealType: string;
   cuisineType: string;
   difficulty: string;
-  cookingTime: number;
-  prepTime: number;  
+  prepTime: number;
+  cookingTime: number;    
   ingredients: Ingredient[];
   instructions: string[];
   imageURL?: string;
