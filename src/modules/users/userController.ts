@@ -3,6 +3,7 @@ import path from "path";
 import bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import userModel from "./User";
+import { Preferences } from "./Preferences";
 import fridgeModel from "../fridge/Fridge";
 import cookbookModel from "../cookbook/Cookbook";
 import { deleteFile } from "../../utils/fileService";
@@ -216,9 +217,6 @@ const updateUser = async (
     // Update user details
     if (req.body.firstName !== undefined) user.firstName = req.body.firstName;
     if (req.body.lastName !== undefined) user.lastName = req.body.lastName;
-    if (req.body.headline !== undefined) user.headline = req.body.headline;
-    if (req.body.bio !== undefined) user.bio = req.body.bio;
-    if (req.body.location !== undefined) user.location = req.body.location;
     if (req.body.password) {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(req.body.password, salt);
@@ -254,6 +252,53 @@ const updateUser = async (
     });
   } catch (error) {
     res.status(500).json({ message: "Error updating user data", error });
+  }
+};
+
+// Update user preferences
+const updatePreferences = async (
+  req: Request<{ id: string }, {}, Partial<Preferences>>,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.params.id;
+    const preferences = req.body;
+
+    // Find the user
+    const user = await userModel.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    // Merge and validate preferences
+    const updatedPreferences: Preferences = {
+      allergies: preferences.allergies ?? user.preferences?.allergies ?? [],
+      dietaryPreferences: {
+        vegan: preferences.dietaryPreferences?.vegan ?? user.preferences?.dietaryPreferences?.vegan ?? false,
+        vegetarian: preferences.dietaryPreferences?.vegetarian ?? user.preferences?.dietaryPreferences?.vegetarian ?? false,
+        pescatarian: preferences.dietaryPreferences?.pescatarian ?? user.preferences?.dietaryPreferences?.pescatarian ?? false,
+        carnivore: preferences.dietaryPreferences?.carnivore ?? user.preferences?.dietaryPreferences?.carnivore ?? false,
+        ketogenic: preferences.dietaryPreferences?.ketogenic ?? user.preferences?.dietaryPreferences?.ketogenic ?? false,
+        paleo: preferences.dietaryPreferences?.paleo ?? user.preferences?.dietaryPreferences?.paleo ?? false,
+        lowCarb: preferences.dietaryPreferences?.lowCarb ?? user.preferences?.dietaryPreferences?.lowCarb ?? false,
+        lowFat: preferences.dietaryPreferences?.lowFat ?? user.preferences?.dietaryPreferences?.lowFat ?? false,
+        glutenFree: preferences.dietaryPreferences?.glutenFree ?? user.preferences?.dietaryPreferences?.glutenFree ?? false,
+        dairyFree: preferences.dietaryPreferences?.dairyFree ?? user.preferences?.dietaryPreferences?.dairyFree ?? false,
+        kosher: preferences.dietaryPreferences?.kosher ?? user.preferences?.dietaryPreferences?.kosher ?? false,
+        halal: preferences.dietaryPreferences?.halal ?? user.preferences?.dietaryPreferences?.halal ?? false,
+      },
+    };
+
+    // Update the user's preferences
+    user.preferences = updatedPreferences;
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({ message: "Preferences updated successfully", preferences: user.preferences });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating preferences", error });
   }
 };
 
@@ -358,6 +403,7 @@ export default {
   getUserData,
   findUsersByName,
   updateUser,
+  updatePreferences,
   deleteUser,
   logout,
   refresh,  

@@ -4,7 +4,7 @@ import { getImageFromPexels } from './pexelsImage';
 
 // Generate a recipe based on the provided ingredients using Google Gemini API
 export const generateRecipe = async (req: Request, res: Response): Promise<void> => {
-  const { ingredients } = req.body;
+  const { ingredients, ...options } = req.body;
 
   if (!ingredients || ingredients.trim() === "") {
     res.status(400).json({ error: 'Ingredients are required.' });
@@ -12,7 +12,7 @@ export const generateRecipe = async (req: Request, res: Response): Promise<void>
   }
 
   try {
-    const recipe = await createRecipe(ingredients);
+    const recipe = await createRecipe(ingredients, options);
 
     let imageUrl = '';
     try {
