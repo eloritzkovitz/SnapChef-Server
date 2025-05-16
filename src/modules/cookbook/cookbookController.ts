@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import cookbookModel from "./Cookbook";
+import { extractTitleFromPrompt, extractDescriptionFromPrompt } from "./cookbookUtils";
 
 // Add a recipe to a cookbook
 const addRecipe = async (req: Request, res: Response): Promise<void> => {
@@ -133,56 +134,6 @@ const getCookbookContent = async (req: Request, res: Response): Promise<void> =>
     console.error("Error fetching cookbook:", error);
     res.status(500).json({ message: "Failed to fetch cookbook", error: (error as Error).message });
   }
-};
-
-// Helper function to extract the title from the prompt output
-const extractTitleFromPrompt = (promptOutput: string[] | string): string => {
-  if (!promptOutput) {
-    return "Untitled Recipe";
-  }
-
-  // If the input is an array, join it into a single string
-  const lines = Array.isArray(promptOutput)
-    ? promptOutput.map((line) => line.trim())
-    : promptOutput.split("\n").map((line) => line.trim());
-
-  for (const line of lines) {
-    if (line.startsWith("##") || line.startsWith("**Recipe:")) {
-      // Remove Markdown formatting and return the title
-      return line.replace(/##|(\*\*Recipe:)|\*\*/g, "").trim();
-    }
-  }
-
-  // Fallback to the first non-empty line
-  return lines.find((line) => line.length > 0) || "Untitled Recipe";
-};
-
-// Helper function to extract the description from the prompt output
-const extractDescriptionFromPrompt = (promptOutput: string[] | string): string => {
-  if (!promptOutput) {
-    return "No description available.";
-  }
-
-  // If the input is an array, join it into a single string
-  const lines = Array.isArray(promptOutput)
-    ? promptOutput.map((line) => line.trim())
-    : promptOutput.split("\n").map((line) => line.trim());
-
-  let foundTitle = false;
-
-  for (const line of lines) {
-    if (line.startsWith("##") || line.startsWith("**Recipe:")) {
-      foundTitle = true; // Skip the title
-      continue;
-    }
-
-    if (foundTitle && line.length > 0 && !line.startsWith("**Ingredients:**") && !line.startsWith("**Instructions:**")) {
-      // Remove Markdown formatting and return the description
-      return line.replace(/\*\*/g, "").trim();
-    }
-  }
-
-  return "No description available.";
 };
 
 export default {
