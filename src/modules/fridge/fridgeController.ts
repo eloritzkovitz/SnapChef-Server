@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import fridgeModel from "./Fridge";
 import { logActivity } from "../../utils/logService";
-import { Document, Types } from "mongoose"; // Add this import
 
 // Create a new fridge
 const createFridge = async (req: Request, res: Response): Promise<void> => {
@@ -100,6 +99,7 @@ const addItem = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Update an item in the fridge
 const updateItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id, itemId } = req.params; // `id` is the fridge ID, `itemId` is the ingredient ID
@@ -137,7 +137,7 @@ const updateItem = async (req: Request, res: Response): Promise<void> => {
     // Save the updated fridge
     await fridge.save();
 
-    // Log activity - fix owner ID type
+    // Log activity
     await logActivity(
       typeof fridge.ownerId === 'object' && fridge.ownerId !== null 
         ? fridge.ownerId.toString() 
