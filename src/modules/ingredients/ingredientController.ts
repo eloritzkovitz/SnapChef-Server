@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 import  ingredientModel from './Ingredient';
-import { loadIngredientData } from '../../utils/ingredientData';
+import { loadIngredientData } from './ingredientService';
 
 const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
 
