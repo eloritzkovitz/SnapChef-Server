@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
   joinDate: { type: String, required: true },
   fridgeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fridge' },
   cookbookId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cookbook' },
-  preferences: { type: PreferencesSchema, default: {} },
+  preferences: { type: PreferencesSchema, default: {}, required: true },
   refreshToken: { type: String, default: "" }
 });
 

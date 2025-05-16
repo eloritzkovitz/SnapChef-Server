@@ -33,7 +33,7 @@ const PreferencesSchema = new mongoose.Schema<Preferences>({
     dairyFree: { type: Boolean, default: false },
     kosher: { type: Boolean, default: false },
     halal: { type: Boolean, default: false },
-  },
-});
+  }
+}, { _id: false });
 
 export default PreferencesSchema;
