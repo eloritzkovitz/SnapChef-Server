@@ -6,6 +6,7 @@ import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import path from "path";
 import fs from "fs";
+import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
 import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
 import recipeRoutes from "./modules/recipes/recipeRoutes";
@@ -40,6 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/fridge", fridgeRoutes);
@@ -63,6 +65,7 @@ const options = {
     ],
   },
   apis: [
+    "./src/modules/**/authRoutes.ts",
     "./src/modules/**/userRoutes.ts",
     "./src/modules/**/ingredientRoutes.ts",
     "./src/modules/**/fridgeRoutes.ts",
