@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 import  ingredientModel from './Ingredient';
-import { loadIngredientData } from '../../utils/ingredientData';
+import { loadIngredientData } from './ingredientService';
 
 const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
 
@@ -11,13 +11,27 @@ const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
 export const recognize = async (req: Request, res: Response, type: string): Promise<void> => {
   console.log(`Received POST request at /recognize/${type}`);
   try {
+    let result;
+
+    // For barcode: expect a barcode string in the request body
+    if (type === 'barcode') {      
+      const barcode = req.body.barcode;
+      if (!barcode) {
+        res.status(400).json({ error: 'No barcode provided.' });
+        return;
+      }
+      result = await recognizeBarcode(barcode);
+      res.json(result);
+      return;
+    }
+
+    // For photo/receipt: expect image file
     const file = req.file;
     if (!file) {
       res.status(400).json({ error: 'No file uploaded.' });
       return;
     }
 
-    let result;
     try {
       switch (type) {
         case 'photo':
@@ -26,14 +40,10 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
         case 'receipt':
           result = await recognizeReceipt(file.path);
           break;
-        case 'barcode':
-          result = await recognizeBarcode(file.path);
-          break;
         default:
           res.status(400).json({ error: 'Invalid recognition type.' });
           return;
       }
-
       res.json(result);
     } finally {
       // Delete the file after processing

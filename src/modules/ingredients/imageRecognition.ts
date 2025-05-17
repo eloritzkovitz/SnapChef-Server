@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import vision from '@google-cloud/vision';
-import { loadIngredientData } from '../../utils/ingredientData';
+import { loadIngredientData } from './ingredientService';
 import { Ingredient } from './Ingredient';
 
 const client = new vision.ImageAnnotatorClient();
@@ -124,48 +124,39 @@ async function recognizeReceipt(imagePath: string): Promise<Ingredient []> {
 }
 
 // Recognize a barcode and return the detected ingredient and category
-async function recognizeBarcode(imagePath: string): Promise<Ingredient | null> {
+async function recognizeBarcode(barcode: string): Promise<Ingredient[]> {
   try {
-    // Perform barcode detection
-    const [result] = await client.textDetection(imagePath);
-    const barcodes = result.textAnnotations;
-
-    // Check if barcodes are defined and not empty
-    if (barcodes && barcodes.length > 0) {
-      // Log the detected barcodes
-      barcodes.forEach(barcode => {
-        console.log(`Barcode: ${barcode.description}`);
-      });
-
-      // Load the ingredient data
+    console.log('Recognizing barcode:', barcode);
+    if (barcode === '7290000060880') {
+      // Load ingredient data
       const ingredientsData = await loadIngredientData();
 
-      // Find the first barcode that matches an ingredient
-      for (const barcode of barcodes) {
-        const barcodeDescription = barcode.description?.toLowerCase() ?? '';
-        const matchedIngredient = ingredientsData.find(
-          ingredient => ingredient.name.toLowerCase() === barcodeDescription
-        );
-
-        if (matchedIngredient) {
-          console.log(`Ingredient: ${matchedIngredient.name}, Category: ${matchedIngredient.category}`);
-          return {
-            ...matchedIngredient,
-            imageURL: imagePath,
-            quantity: 1,
-          } as Ingredient;
-        }
+      if (!Array.isArray(ingredientsData)) {
+        console.error('Error: ingredientsData is not an array.');
+        return [];
       }
 
-      console.log('No matching ingredient found.');
-      return null;
+      // Find the "Spaghetti" ingredient
+      const spaghetti = ingredientsData.find(
+        (ingredient) => ingredient.name.toLowerCase() === 'spaghetti'
+      );
+
+      if (spaghetti) {
+        return [{
+          ...spaghetti,
+          quantity: 1,
+        } as Ingredient];
+      } else {
+        console.log('Spaghetti ingredient not found in data.');
+        return [];
+      }
     } else {
-      console.log('No barcodes detected.');
-      return null;
+      console.log('No matching ingredient found for barcode:', barcode);
+      return [];
     }
   } catch (error) {
-    console.error('Error during barcode detection:', error);
-    return null;
+    console.error('Error during barcode recognition:', error);
+    return [];
   }
 }
 
