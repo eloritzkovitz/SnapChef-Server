@@ -78,7 +78,7 @@ router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredien
  *       200:
  *         description: Recognized ingredients from barcode
  */
-router.post("/recognize/barcode", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "barcode"));
+router.post("/recognize/barcode", (req, res) => ingredientController.recognize(req, res, "barcode"));
 
 /**
  * @swagger

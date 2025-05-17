@@ -6,12 +6,12 @@ import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import path from "path";
 import fs from "fs";
-import usersRoute from "./modules/users/userRoutes";
-import ingredientsRoute from "./modules/ingredients/ingredientRoutes";
-import recipesRoute from "./modules/recipes/recipeRoutes";
+import userRoutes from "./modules/users/userRoutes";
+import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
+import recipeRoutes from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
-import notificationsRoutes from "./modules/notifications/notificationRoutes";
+import notificationRoutes from "./modules/notifications/notificationRoutes";
 
 const app = express();
 
@@ -40,12 +40,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/users", usersRoute);
-app.use("/api/ingredients", ingredientsRoute);
+app.use("/api/users", userRoutes);
+app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/fridge", fridgeRoutes);
-app.use("/api/recipes", recipesRoute);
+app.use("/api/recipes", recipeRoutes);
 app.use("/api/cookbook",cookbookRoutes);
-app.use("/api/notifications", notificationsRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/about", (req, res) => {
   res.send("This is the API for the SnapChef application.");
