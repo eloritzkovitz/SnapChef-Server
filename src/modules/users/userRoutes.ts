@@ -1,14 +1,15 @@
 import express from "express";
-const router = express.Router();
 import usersController from "./userController";
 import { authMiddleware } from "../../middleware/auth";
 import upload from "../../middleware/upload";
 
+const router = express.Router();
+
 /**
 * @swagger
 * tags:
-*   name: Auth
-*   description: API for managing user authentication
+*   name: Users
+*   description: API for managing users
 */
 
 /**
@@ -39,153 +40,21 @@ import upload from "../../middleware/upload";
 
 /**
  * @swagger
- * /auth/google:
- *   post:
- *     summary: Google sign-in
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               idToken:
- *                 type: string
- *                 description: The Google ID token
- *     responses:
- *       200:
- *         description: Successful sign-in
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 refreshToken:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 _id:
- *                   type: string
- *                   example: 60d0fe4f5311236168a109ca
- *       400:
- *         description: Invalid ID token
- *       500:
- *         description: Server error
- */
-router.post("/google", usersController.googleSignIn);
-
-/**
- * @swagger
- * /auth/register:
- *   post:
- *     summary: Register a new user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/User'
- *     responses:
- *       200:
- *         description: User registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Server error
- */
-router.post("/register", usersController.register);
-
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Log in a user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/User'
- *     responses:
- *       200:
- *         description: Successful login
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                   description: JWT access token
- *                 refreshToken:
- *                   type: string
- *                   description: JWT refresh token
- *                 _id:
- *                   type: string
- *                   description: User ID
- *       400:
- *         description: Invalid credentials
- *       500:
- *         description: Server error
- */
-router.post("/login", usersController.login);
-
-/**
- * @swagger
- * /auth/refresh:
- *   post:
- *     summary: Refresh tokens
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshToken:
- *                 type: string
- *                 description: The refresh token
- *     responses:
- *       200:
- *         description: Tokens refreshed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                   description: New JWT access token
- *                 refreshToken:
- *                   type: string
- *                   description: New JWT refresh token
- *       400:
- *         description: Invalid refresh token
- *       500:
- *         description: Server error
- */
-router.post("/refresh", usersController.refresh);
-
-/**
- * @swagger
- * /auth/user:
+ * /users/{id}:
  *   get:
  *     summary: Get user data
  *     description: Retrieve the user data
  *     tags:
- *       - Auth
+ *       - Users
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
  *     responses:
  *       200:
  *         description: The user data
@@ -195,19 +64,23 @@ router.post("/refresh", usersController.refresh);
  *               $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Server error
  */
-router.get("/user/:id", authMiddleware, usersController.getUserData);
+router.get("/:id", authMiddleware, usersController.getUserData);
 
 /**
  * @swagger
- * /auth/users:
+ * /users:
  *   get:
  *     summary: Search users by name
  *     description: Retrieve a list of users whose first or last name matches the query.
  *     tags:
- *       - Auth
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: query
@@ -242,21 +115,21 @@ router.get("/user/:id", authMiddleware, usersController.getUserData);
  *       500:
  *         description: Server error
  */
-router.get("/users", authMiddleware, usersController.findUsersByName);
+router.get("/", authMiddleware, usersController.findUsersByName);
 
 /**
  * @swagger
- * /auth/user/{userId}:
+ * /users/{id}:
  *   put:
  *     summary: Update user data
  *     description: Update user details including first name, last name, password, and profile picture
  *     tags:
- *       - Auth
+ *       - Users
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: userId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -293,21 +166,21 @@ router.get("/users", authMiddleware, usersController.findUsersByName);
  *       500:
  *         description: Server error
  */
-router.put("/user/:id", authMiddleware, upload.single("profilePicture"), usersController.updateUser);
+router.put("/:id", authMiddleware, upload.single("profilePicture"), usersController.updateUser);
 
 /**
  * @swagger
- * /auth/user/{userId}/preferences:
+ * /users/{id}/preferences:
  *   put:
  *     summary: Update user preferences
  *     description: Update user preferences such as allergies and dietary preferences.
  *     tags:
- *       - Auth
+ *       - Users
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: userId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -431,21 +304,21 @@ router.put("/user/:id", authMiddleware, upload.single("profilePicture"), usersCo
  *       500:
  *         description: Server error
  */
-router.put("/user/:id/preferences", authMiddleware, usersController.updatePreferences);
+router.put("/:id/preferences", authMiddleware, usersController.updatePreferences);
 
 /**
  * @swagger
- * /auth/user/{userId}:
+ * /users/{id}:
  *   delete:
  *     summary: Delete a user
  *     description: Delete a user by their ID, including their profile picture and associated data.
  *     tags:
- *       - Auth
+ *       - Users
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: userId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -460,32 +333,6 @@ router.put("/user/:id/preferences", authMiddleware, usersController.updatePrefer
  *       500:
  *         description: Server error
  */
-router.delete("/user/:id", authMiddleware, usersController.deleteUser);
-
-/**
- * @swagger
- * /auth/logout:
- *   post:
- *     summary: Log out a user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshToken:
- *                 type: string
- *                 description: The refresh token to invalidate
- *     responses:
- *       200:
- *         description: User logged out successfully
- *       400:
- *         description: Invalid refresh token
- *       500:
- *         description: Server error
- */
-router.post("/logout", usersController.logout);
+router.delete("/:id", authMiddleware, usersController.deleteUser);
 
 export default router;
