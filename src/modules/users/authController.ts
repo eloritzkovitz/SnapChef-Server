@@ -1,0 +1,208 @@
+import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
+import userModel from "./User";
+import fridgeModel from "../fridge/Fridge";
+import cookbookModel from "../cookbook/Cookbook";
+import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Google sign-in
+const googleSignIn = async (req: Request, res: Response) => {
+  try {
+    const { idToken } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload) {
+      res.status(400).send("Invalid Google ID token");
+      return;
+    }
+
+    const { sub, email, given_name, family_name, picture } = payload;
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      // Create a new user if one does not exist
+      user = await userModel.create({
+        firstName: given_name,
+        lastName: family_name,
+        email,
+        password: sub, // Use Google sub as a placeholder password
+        profilePicture: picture,
+        joinDate: new Date().toISOString(),
+      });
+    }
+
+    // Generate tokens
+    const tokens = generateToken(user._id);
+    if (!tokens) {
+      res.status(500).send("Server Error");
+      return;
+    }
+
+    // Set the latest refresh token (overwrite any existing one)
+    user.refreshToken = tokens.refreshToken;
+    await user.save();
+
+    // Send back the tokens to the client
+    res.status(200).send({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      _id: user._id,
+    });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// Register function
+const register = async (req: Request, res: Response) => {
+  try {
+    const password = req.body.password;
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const profilePicture = "";
+    const user = await userModel.create({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      password: hashedPassword,
+      profilePicture,
+      joinDate: new Date().toISOString(),
+    });
+
+    // Create a fridge for the user
+    const fridge = await fridgeModel.create({
+      ownerId: user._id,
+      ingredients: [],
+    });
+
+    // Create a cookbook for the user
+    const cookbook = await cookbookModel.create({
+      ownerId: user._id,
+      recipes: [],
+    });
+
+    // Associate the fridge and cookbook IDs with the user
+    user.fridgeId = fridge._id as any;
+    user.cookbookId = cookbook._id as any;
+    await user.save();
+
+    res.status(200).send(user);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// Login function
+const login = async (req: Request, res: Response) => {
+  try {
+    // Find user by email
+    const user = await userModel.findOne({ email: req.body.email });
+    if (!user) {
+      res.status(400).send("Wrong username or password");
+      return;
+    }
+
+    // Validate password
+    const validPassword = await bcrypt.compare(req.body.password, user.password);
+    if (!validPassword) {
+      res.status(400).send("Wrong username or password");
+      return;
+    }
+
+    // Ensure TOKEN_SECRET is available
+    if (!process.env.TOKEN_SECRET) {
+      res.status(500).send("Server Error");
+      return;
+    }
+
+    // Generate new access and refresh tokens
+    const tokens = generateToken(user._id);
+    if (!tokens) {
+      res.status(500).send("Server Error");
+      return;
+    }
+
+    // Set the latest refresh token
+    user.refreshToken = tokens.refreshToken;
+    await user.save();
+
+    // Send back the tokens to the client
+    res.status(200).send({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      _id: user._id,
+    });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// Logout function
+const logout = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    res.status(400).json({ message: "Refresh token is required" });
+    return;
+  }
+
+  try {
+    const user = await verifyRefreshToken(refreshToken);
+    await user.save();
+    res.status(200).send("success");
+  } catch (err) {
+    res.status(400).send("fail");
+  }
+};
+
+// Refresh tokens
+export const refresh = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const incomingToken = req.body.refreshToken?.trim();
+    if (!incomingToken) {
+      res.status(400).send("Refresh token required");
+      return;
+    }
+
+    // Verify the refresh token
+    const user = await verifyRefreshToken(incomingToken);
+    if (!user) {
+      res.status(401).send("Invalid token");
+      return;
+    }
+
+    // Generate new tokens
+    const tokens = generateToken(user._id);
+    if (tokens) {
+      user.refreshToken = tokens.refreshToken;
+    } else {
+      res.status(500).send("Failed to generate tokens");
+      return;
+    }
+    await user.save();
+
+    res.status(200).json({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      _id: user._id,
+    });
+    return;
+  } catch (err) {
+    res.status(400).send("Failed to refresh token");
+    return;
+  }
+};
+
+export default {
+  googleSignIn,
+  register,  
+  login,  
+  logout,
+  refresh,  
+};
