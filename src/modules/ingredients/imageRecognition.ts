@@ -45,7 +45,7 @@ async function recognizePhoto(imagePath: string): Promise<Ingredient[]> {
           if (ingredient.name.toLowerCase() === objectName) {
             matchedIngredients.push({
               ...ingredient,
-              imageURL: imagePath,
+              imageURL: ingredient.imageURL,
               quantity: 1,
             } as Ingredient);
           }
@@ -100,7 +100,7 @@ async function recognizeReceipt(imagePath: string): Promise<Ingredient []> {
           if (ingredient.name.toLowerCase() === textDescription) {
             matchedIngredients.push({
               ...ingredient,
-              imageURL: imagePath,
+              imageURL: ingredient.imageURL,
               quantity: 1,
             } as Ingredient);
           }
