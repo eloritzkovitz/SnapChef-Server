@@ -5,6 +5,7 @@ interface Ingredient {
   id: string;
   name: string;
   category: string;
+  imageURL?: string;
 }
 
 const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
@@ -56,4 +57,14 @@ export function getCachedIngredients(): Ingredient[] {
     throw new Error('Ingredients have not been loaded yet. Call loadIngredientData first.');
   }
   return ingredientsCache;
+}
+
+// Utility to get an ingredient by name and include imageURL if it exists
+export function getIngredientByName(name: string): Ingredient | undefined {
+  if (!ingredientsCache) {
+    throw new Error('Ingredients have not been loaded yet. Call loadIngredientData first.');
+  }
+  return ingredientsCache.find(
+    (ingredient) => ingredient.name.toLowerCase() === name.toLowerCase()
+  );
 }

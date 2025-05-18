@@ -2,7 +2,8 @@
   {
     "id": "10000000",
     "name": "Apple",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14159.jpg"
   },
   {
     "id": "10000001",
@@ -82,7 +83,8 @@
   {
     "id": "10000016",
     "name": "Lemon",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14296.jpg"
   },
   {
     "id": "10000017",
@@ -127,12 +129,14 @@
   {
     "id": "10000025",
     "name": "Pear",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14616.jpg"
   },
   {
     "id": "10000026",
     "name": "Pineapple",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/15248.jpg"
   },
   {
     "id": "10000027",
@@ -417,7 +421,8 @@
   {
     "id": "10000083",
     "name": "Tomato",
-    "category": "Vegetables"
+    "category": "Vegetables",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/13008.jpg"
   },
   {
     "id": "10000084",
