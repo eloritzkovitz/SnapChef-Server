@@ -8,12 +8,14 @@
   {
     "id": "10000001",
     "name": "Apricot",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/4a13cfb8-006a-4b70-923b-56c5f02d52b2_14586.png"
   },
   {
     "id": "10000002",
     "name": "Banana",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14562.jpg"
   },
   {
     "id": "10000003",
@@ -28,12 +30,14 @@
   {
     "id": "10000005",
     "name": "Cantaloupe",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/13282.jpg"
   },
   {
     "id": "10000006",
     "name": "Cherry",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://res.cloudinary.com/hazi-hinam/image/upload//w_155,h_170,c_limit/v1685427356/Production/15255/533bab06-3a62-49c6-839f-8189cead799c.jpg"
   },
   {
     "id": "10000007",
@@ -43,7 +47,8 @@
   {
     "id": "10000008",
     "name": "Clementine",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14456.jpg"
   },
   {
     "id": "10000009",
@@ -53,7 +58,8 @@
   {
     "id": "10000010",
     "name": "Date",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/3486281.jpg"
   },
   {
     "id": "10000011",
@@ -63,12 +69,14 @@
   {
     "id": "10000012",
     "name": "Grape",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://res.cloudinary.com/hazi-hinam/image/upload//w_155,h_170,c_limit/v1648626256/Production/20617/1cf51464-6593-45a4-9f58-09727fe3a5dc.jpg"
   },
   {
     "id": "10000013",
     "name": "Grapefruit",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14319.jpg"
   },
   {
     "id": "10000014",
@@ -78,7 +86,8 @@
   {
     "id": "10000015",
     "name": "Kiwifruit",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/4300acca-c1da-4bf3-90d5-2c80dfad785e_13947.png"
   },
   {
     "id": "10000016",
@@ -104,17 +113,20 @@
   {
     "id": "10000020",
     "name": "Melon",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://res.cloudinary.com/hazi-hinam/image/upload//w_155,h_170,c_limit/v1746439633/Production/20709/46f02320-a34e-4910-8541-dd2ce0171a11.jpg"
   },
   {
     "id": "10000021",
     "name": "Nectarine",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14371.jpg"
   },
   {
     "id": "10000022",
     "name": "Orange",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14302.jpg"
   },
   {
     "id": "10000023",
@@ -124,7 +136,8 @@
   {
     "id": "10000024",
     "name": "Peach",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/13916.jpg"
   },
   {
     "id": "10000025",
@@ -141,7 +154,8 @@
   {
     "id": "10000027",
     "name": "Plum",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://res.cloudinary.com/hazi-hinam/image/upload//w_155,h_170,c_limit/v1747227284/Production/10250/f61fee54-417f-4b9a-96d4-276ec739d6a5.png"
   },
   {
     "id": "10000028",
@@ -151,7 +165,8 @@
   {
     "id": "10000029",
     "name": "Pomelo",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14425.jpg"
   },
   {
     "id": "10000030",
@@ -176,22 +191,26 @@
   {
     "id": "10000034",
     "name": "Watermelon",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/17051.jpg"
   },
   {
     "id": "10000035",
     "name": "Almond",
-    "category": "Nuts, Seeds & Dried Fruits"
+    "category": "Nuts, Seeds & Dried Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/3485949.jpg"
   },
   {
     "id": "10000036",
     "name": "Brazil Nut",
-    "category": "Nuts, Seeds & Dried Fruits"
+    "category": "Nuts, Seeds & Dried Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/3486144.jpg"
   },
   {
     "id": "10000037",
     "name": "Cashew",
-    "category": "Nuts, Seeds & Dried Fruits"
+    "category": "Nuts, Seeds & Dried Fruits",
+    "imageURL": "https://res.cloudinary.com/hazi-hinam/image/upload//w_155,h_170,c_limit/v1676190390/Production/3597/dbb9c3c1-d16b-42e2-bc2f-a0fa222c57d2.jpg"
   },
   {
     "id": "10000038",
@@ -211,7 +230,8 @@
   {
     "id": "10000041",
     "name": "Hazelnut",
-    "category": "Nuts, Seeds & Dried Fruits"
+    "category": "Nuts, Seeds & Dried Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/3485918.jpg"
   },
   {
     "id": "10000042",
@@ -261,7 +281,8 @@
   {
     "id": "10000051",
     "name": "Walnut",
-    "category": "Nuts, Seeds & Dried Fruits"
+    "category": "Nuts, Seeds & Dried Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/3486243.jpg"
   },
   {
     "id": "10000052",
@@ -1417,12 +1438,14 @@
   {
     "id": "10000282",
     "name": "Raisins",
-    "category": "Nuts, Seeds & Dried Fruits"
+    "category": "Nuts, Seeds & Dried Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/3486403.jpg"
   },
   {
     "id": "10000283",
     "name": "Avocado",
-    "category": "Fruits"
+    "category": "Fruits",
+    "imageURL": "https://hazihinamprod01.blob.core.windows.net/images/Items/Medium/14746.jpg"
   },
   {
     "id": "10000284",
