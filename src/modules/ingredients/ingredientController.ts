@@ -124,7 +124,7 @@ const getIngredientsByQuery = async (req: Request, res: Response): Promise<void>
 
 // Add a new ingredient to the database
 const addIngredient = async (req: Request, res: Response): Promise<void> => {
-  const { name, category } = req.body;
+  const { name, category, imageURL } = req.body;
 
   if (!name || !category) {
     res.status(400).json({ message: "Name and category are required." });
@@ -155,6 +155,7 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
       id: newId,
       name,
       category,
+      imageURL : null,
     };
 
     // Add the new ingredient
@@ -174,7 +175,7 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
 // Edit an existing ingredient in the database
 const editIngredient = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { name, category } = req.body;
+  const { name, category, imageURL } = req.body;
 
   if (!id || (!name && !category)) {
     res.status(400).json({ message: "ID and at least one field (name or category) are required." });
@@ -196,6 +197,7 @@ const editIngredient = async (req: Request, res: Response): Promise<void> => {
     // Update the ingredient
     if (name) ingredients[ingredientIndex].name = name;
     if (category) ingredients[ingredientIndex].category = category;
+    if (imageURL) ingredients[ingredientIndex].imageURL = imageURL;
 
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
