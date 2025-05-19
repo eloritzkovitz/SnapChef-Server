@@ -2,6 +2,7 @@ import 'dotenv/config';
 import vision from '@google-cloud/vision';
 import { loadIngredientData } from './ingredientService';
 import { Ingredient } from './Ingredient';
+import { recognizeBarcode as barcodeServiceRecognize } from './barcodeService';
 
 const client = new vision.ImageAnnotatorClient();
 
@@ -127,33 +128,7 @@ async function recognizeReceipt(imagePath: string): Promise<Ingredient []> {
 async function recognizeBarcode(barcode: string): Promise<Ingredient[]> {
   try {
     console.log('Recognizing barcode:', barcode);
-    if (barcode === '7290000060880') {
-      // Load ingredient data
-      const ingredientsData = await loadIngredientData();
-
-      if (!Array.isArray(ingredientsData)) {
-        console.error('Error: ingredientsData is not an array.');
-        return [];
-      }
-
-      // Find the "Spaghetti" ingredient
-      const spaghetti = ingredientsData.find(
-        (ingredient) => ingredient.name.toLowerCase() === 'spaghetti'
-      );
-
-      if (spaghetti) {
-        return [{
-          ...spaghetti,
-          quantity: 1,
-        } as Ingredient];
-      } else {
-        console.log('Spaghetti ingredient not found in data.');
-        return [];
-      }
-    } else {
-      console.log('No matching ingredient found for barcode:', barcode);
-      return [];
-    }
+    return await barcodeServiceRecognize(barcode);
   } catch (error) {
     console.error('Error during barcode recognition:', error);
     return [];
