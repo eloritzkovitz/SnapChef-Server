@@ -1,5 +1,6 @@
 import request from "supertest";
 import express from "express";
+import authController from "../modules/users/authController";
 import userController from "../modules/users/userController";
 import userModel from "../modules/users/User";
 import fridgeModel from "../modules/fridge/Fridge";
@@ -14,8 +15,8 @@ jest.mock("../utils/tokenService");
 const app = express();
 app.use(express.json());
 
-app.post("/register", userController.register);
-app.post("/login", userController.login);
+app.post("/register", authController.register);
+app.post("/login", authController.login);
 app.get("/user/:id", userController.getUserData);
 
 const mockUser = {

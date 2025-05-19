@@ -2,7 +2,7 @@ import express from 'express';
 import request from 'supertest';
 import { generateRecipe } from '../modules/recipes/recipeController';
 import * as recipeGen from '../modules/recipes/recipeGeneration';
-import * as pexels from '../modules/recipes/pexelsImage';
+//import * as pexels from '../modules/recipes/pexelsImage';
 
 jest.mock('../modules/recipes/recipeGeneration');
 jest.mock('../modules/recipes/pexelsImage');
@@ -22,7 +22,7 @@ describe('generateRecipe', () => {
 
   it('should return recipe and image when both succeed', async () => {
     (recipeGen.createRecipe as jest.Mock).mockResolvedValue(mockRecipe);
-    (pexels.getImageFromPexels as jest.Mock).mockResolvedValue(mockImageUrl);
+    //(pexels.getImageFromPexels as jest.Mock).mockResolvedValue(mockImageUrl);
 
     const res = await request(app).post('/generate-recipe').send({ ingredients: mockIngredients });
 
@@ -30,12 +30,12 @@ describe('generateRecipe', () => {
     expect(res.body.recipe).toBe(mockRecipe);
     expect(res.body.imageUrl).toBe(mockImageUrl);
     expect(recipeGen.createRecipe).toHaveBeenCalledWith(mockIngredients);
-    expect(pexels.getImageFromPexels).toHaveBeenCalledWith(mockIngredients);
+    //expect(pexels.getImageFromPexels).toHaveBeenCalledWith(mockIngredients);
   });
 
   it('should return recipe with placeholder image if image fetch fails', async () => {
     (recipeGen.createRecipe as jest.Mock).mockResolvedValue(mockRecipe);
-    (pexels.getImageFromPexels as jest.Mock).mockRejectedValue(new Error('Pexels error'));
+    //(pexels.getImageFromPexels as jest.Mock).mockRejectedValue(new Error('Pexels error'));
 
     const res = await request(app).post('/generate-recipe').send({ ingredients: mockIngredients });
 

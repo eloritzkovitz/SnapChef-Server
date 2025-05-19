@@ -2,7 +2,7 @@ import express from 'express';
 import request from 'supertest';
 import ingredientController from '../modules/ingredients/ingredientController';
 import ingredientModel from '../modules/ingredients/Ingredient';
-import { loadIngredientData } from '../utils/ingredientData';
+import { loadIngredientData } from '../modules/ingredients/ingredientService';
 
 jest.mock('../modules/ingredients/Ingredient');
 jest.mock('../modules/ingredients/imageRecognition');
