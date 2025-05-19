@@ -1270,7 +1270,8 @@
   {
     "id": "10000232",
     "name": "Tomato Sauce",
-    "category": "Condiments & Sauces"
+    "category": "Condiments & Sauces",
+    "imageURL": "https://res.cloudinary.com/hazi-hinam/image/upload//w_300,h_300,c_limit/v1717439446/Production/8005110002533/8005110002533_p112-08-2020_23-00-30.jpg"
   },
   {
     "id": "10000233",
