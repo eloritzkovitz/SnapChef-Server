@@ -51,7 +51,7 @@ router.post("/", authMiddleware, fridgeController.createFridge);
  *         description: List of fridge items
  */
 // Get fridge content
-router.get("/:id/items", authMiddleware, fridgeController.getFridgeContent);
+router.get("/:fridgeId/items", authMiddleware, fridgeController.getFridgeContent);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.get("/:id/items", authMiddleware, fridgeController.getFridgeContent);
  *         description: Item added successfully
  */
 // Add a new item to the fridge
-router.post("/:fridgeId/items", authMiddleware, fridgeController.addItem);
+router.post("/:fridgeId/items", authMiddleware, fridgeController.addFridgeItem);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.post("/:fridgeId/items", authMiddleware, fridgeController.addItem);
  *         description: Item updated successfully
  */
 // Update an item in the fridge
-router.put("/:id/items/:itemId", authMiddleware, fridgeController.updateItem);
+router.put("/:fridgeId/items/:itemId", authMiddleware, fridgeController.updateFridgeItem);
 
 /**
  * @swagger
@@ -159,6 +159,67 @@ router.put("/:id/items/:itemId", authMiddleware, fridgeController.updateItem);
  *         description: Item deleted successfully
  */
 // Delete an item from the fridge
-router.delete("/:id/items/:itemId", authMiddleware, fridgeController.deleteItem);
+router.delete("/:fridgeId/items/:itemId", authMiddleware, fridgeController.deleteFridgeItem);
+
+/**
+ * @swagger
+ * /api/fridge/{fridgeId}/groceries:
+ *   post:
+ *     summary: Add a new item to the groceries list
+ *     tags: [Fridge]
+ *     parameters:
+ *       - in: path
+ *         name: fridgeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               imageURL:
+ *                 type: string
+ *               quantity:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Item added to groceries list successfully
+ */
+router.post("/:fridgeId/groceries", authMiddleware, fridgeController.addGroceryItem);
+
+/**
+ * @swagger
+ * /api/fridge/{id}/groceries/{itemId}:
+ *   delete:
+ *     summary: Delete an item from the groceries list
+ *     tags: [Fridge]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Item ID
+ *     responses:
+ *       200:
+ *         description: Item deleted from groceries list successfully
+ */
+router.delete("/:fridgeId/groceries/:itemId", authMiddleware, fridgeController.deleteGroceryItem);
 
 export default router;
