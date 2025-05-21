@@ -12,7 +12,7 @@ const createFridge = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const fridge = await fridgeModel.create({ ownerId: userId, ingredients: [] });
+    const fridge = await fridgeModel.create({ ownerId: userId, ingredients: [], groceries: [] });
     
     res.status(201).json(fridge);
   } catch (error) {
@@ -102,10 +102,7 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
     if (!ingredient) {
       res.status(404).json({ message: "Ingredient not found in this fridge" });
       return;
-    }
-
-    // Store old quantity for logging
-    const oldQuantity = ingredient.quantity;
+    }    
 
     // Update the ingredient's quantity
     ingredient.quantity = quantity;
@@ -155,6 +152,25 @@ const deleteFridgeItem = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Fetch groceries list
+const getGroceriesList = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fridgeId } = req.params;
+
+    // Find the fridge
+    const fridge = await fridgeModel.findById(fridgeId);
+    if (!fridge) {
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+
+    res.status(200).json(fridge.groceries);
+  } catch (error) {
+    console.error("Error fetching groceries list:", error);
+    res.status(500).json({ message: "Error fetching groceries list", error });
+  }
+};
+
 // Add an item to the groceries list
 const addGroceryItem = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -193,6 +209,46 @@ const addGroceryItem = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Update an item in the groceries list
+const updateGroceryItem = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fridgeId, itemId } = req.params;
+    const { quantity } = req.body;
+
+    // Validate input
+    if (quantity === undefined || quantity === null || isNaN(quantity)) {
+      res.status(400).json({ message: "Valid quantity is required" });
+      return;
+    }
+
+    // Find the fridge
+    const fridge = await fridgeModel.findById(fridgeId);
+    if (!fridge) {
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+    // Find the ingredient in the fridge's groceries array
+    const ingredient = fridge.groceries.find((ingredient) => ingredient.id === itemId);
+    if (!ingredient) {
+      res.status(404).json({ message: "Ingredient not found in this groceries list" });
+      return;
+    }
+    // Update the ingredient's quantity
+    ingredient.quantity = quantity;
+
+    // Explicitly mark the ingredients array as modified
+    fridge.markModified("ingredients");
+
+    // Save the updated fridge
+    await fridge.save();    
+
+    res.status(200).json({ message: "Ingredient updated successfully", ingredient });
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ message: "Error updating item", error });
+  }
+};
+
 // Delete an item from the groceries list
 const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -206,7 +262,7 @@ const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => 
     }
 
     // Find the ingredient before removing (for logging)
-    const ingredientToDelete = fridge.ingredients.find(ingredient => ingredient.id === itemId);
+    const ingredientToDelete = fridge.groceries.find(ingredient => ingredient.id === itemId);
     if (!ingredientToDelete) {
       res.status(404).json({ message: "Ingredient not found in this groceries list" });
       return;
@@ -225,4 +281,4 @@ const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export default { createFridge, getFridgeContent, addFridgeItem, updateFridgeItem, deleteFridgeItem, addGroceryItem, deleteGroceryItem };
+export default { createFridge, getFridgeContent, addFridgeItem, updateFridgeItem, deleteFridgeItem, getGroceriesList, addGroceryItem, updateGroceryItem, deleteGroceryItem };

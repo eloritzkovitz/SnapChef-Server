@@ -164,6 +164,25 @@ router.delete("/:fridgeId/items/:itemId", authMiddleware, fridgeController.delet
 /**
  * @swagger
  * /api/fridge/{fridgeId}/groceries:
+ *   get:
+ *     summary: Get all items in the groceries list
+ *     tags: [Fridge]
+ *     parameters:
+ *       - in: path
+ *         name: fridgeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *     responses:
+ *       200:
+ *         description: List of grocery items
+ */
+router.get("/:fridgeId/groceries", authMiddleware, fridgeController.getGroceriesList);
+
+/**
+ * @swagger
+ * /api/fridge/{fridgeId}/groceries:
  *   post:
  *     summary: Add a new item to the groceries list
  *     tags: [Fridge]
@@ -196,6 +215,46 @@ router.delete("/:fridgeId/items/:itemId", authMiddleware, fridgeController.delet
  *         description: Item added to groceries list successfully
  */
 router.post("/:fridgeId/groceries", authMiddleware, fridgeController.addGroceryItem);
+
+/**
+ * @swagger
+ * /api/fridge/{fridgeId}/groceries/{itemId}:
+ *   put:
+ *     summary: Update an item in the groceries list
+ *     tags: [Fridge]
+ *     parameters:
+ *       - in: path
+ *         name: fridgeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Item ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               imageURL:
+ *                 type: string
+ *               quantity:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Item updated successfully in groceries list
+ */
+router.put("/:fridgeId/groceries/:itemId", authMiddleware, fridgeController.updateGroceryItem);
 
 /**
  * @swagger
