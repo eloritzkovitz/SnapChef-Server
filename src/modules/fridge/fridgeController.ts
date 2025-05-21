@@ -24,10 +24,10 @@ const createFridge = async (req: Request, res: Response): Promise<void> => {
 // Get fridge content
 const getFridgeContent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { fridgeId } = req.params;
 
     // Find the fridge
-    const fridge = await fridgeModel.findById(id);
+    const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
       res.status(404).json({ message: "Fridge not found" });
       return;
