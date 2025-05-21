@@ -12,9 +12,9 @@ app.use(express.json());
 
 app.post("/fridges", fridgeController.createFridge);
 app.get("/fridges/:id", fridgeController.getFridgeContent);
-app.post("/fridges/:fridgeId/items", fridgeController.addItem);
-app.put("/fridges/:id/items/:itemId", fridgeController.updateItem);
-app.delete("/fridges/:id/items/:itemId", fridgeController.deleteItem);
+app.post("/fridges/:fridgeId/items", fridgeController.addFridgeItem);
+app.put("/fridges/:id/items/:itemId", fridgeController.updateFridgeItem);
+app.delete("/fridges/:id/items/:itemId", fridgeController.deleteFridgeItem);
 
 const mockSave = jest.fn();
 const mockFridge = {
