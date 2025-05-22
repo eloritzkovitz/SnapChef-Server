@@ -9,6 +9,7 @@ import fs from "fs";
 import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
 import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
+import recognitionRoutes from "./modules/ingredients/recognitionRoutes";
 import recipeRoutes from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
@@ -45,6 +46,7 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ingredients", ingredientRoutes);
+app.use("/api/ingredients/recognition", recognitionRoutes);
 app.use("/api/fridge", fridgeRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/cookbook",cookbookRoutes);
@@ -71,6 +73,7 @@ const options = {
     "./src/modules/**/authRoutes.ts",
     "./src/modules/**/userRoutes.ts",
     "./src/modules/**/ingredientRoutes.ts",
+    "./src/modules/**/recognitionRoutes.ts",
     "./src/modules/**/fridgeRoutes.ts",
     "./src/modules/**/recipeRoutes.ts",    
     "./src/modules/**/cookbookRoutes.ts",    
