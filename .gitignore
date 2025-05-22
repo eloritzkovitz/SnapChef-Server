@@ -9,6 +9,7 @@
 #node
 node_modules/
 dist/
+logs/
 
 # Symbolication related
 app.*.symbols

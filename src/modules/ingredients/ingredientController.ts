@@ -4,12 +4,13 @@ import path from 'path';
 import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 import  ingredientModel from './Ingredient';
 import { loadIngredientData } from './ingredientService';
+import logger from '../../utils/logger';
 
 const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
 
 // Handle ingredient recognition
 export const recognize = async (req: Request, res: Response, type: string): Promise<void> => {
-  console.log(`Received POST request at /recognize/${type}`);
+  logger.info(`Received POST request at /recognize/${type}`);
   try {
     let result;
 
@@ -17,10 +18,12 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
     if (type === 'barcode') {      
       const barcode = req.body.barcode;
       if (!barcode) {
+        logger.warn('No barcode provided for barcode recognition');
         res.status(400).json({ error: 'No barcode provided.' });
         return;
       }
       result = await recognizeBarcode(barcode);
+      logger.info('Barcode recognized: %s, ingredients: %j', barcode, result);
       res.json(result);
       return;
     }
@@ -28,6 +31,7 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
     // For photo/receipt: expect image file
     const file = req.file;
     if (!file) {
+      logger.warn('No file uploaded for %s recognition', type);
       res.status(400).json({ error: 'No file uploaded.' });
       return;
     }
@@ -36,9 +40,11 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
       switch (type) {
         case 'photo':
           result = await recognizePhoto(file.path);
+          logger.info('Photo recognized: %s, ingredients: %j', file.path, result);
           break;
         case 'receipt':
           result = await recognizeReceipt(file.path);
+          logger.info('Receipt recognized: %s, ingredients: %j', file.path, result);
           break;
         default:
           res.status(400).json({ error: 'Invalid recognition type.' });
@@ -48,11 +54,11 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
     } finally {
       // Delete the file after processing
       await fs.unlink(file.path).catch((err) => {
-        console.error(`Error deleting file ${file.path}:`, err);
+        logger.error('Error deleting file %s: %o', file.path, err);
       });
     }
   } catch (error) {
-    console.error(`Error recognizing ${type}:`, error);
+    logger.error('Error recognizing %s: %o', type, error);
     res.status(500).json({ error: 'Failed to recognize image.' });
   }
 };
@@ -61,9 +67,10 @@ export const recognize = async (req: Request, res: Response, type: string): Prom
 const getAllIngredients = async (req: Request, res: Response): Promise<void> => {
   try {
     const ingredients = await loadIngredientData();
+    logger.info('Fetched all ingredients (%d items)', ingredients.length);
     res.json(ingredients);
   } catch (error) {
-    console.error('Error fetching ingredients:', error);
+    logger.error('Error fetching ingredients: %o', error);
     res.status(500).json({ error: 'Failed to fetch ingredients.' });
   }
 }
@@ -72,14 +79,22 @@ const getAllIngredients = async (req: Request, res: Response): Promise<void> => 
 const getIngredientById = async(req: Request, res: Response): Promise<void> => {
   const _id = req.params.id;
   if (!_id) {
+    logger.warn('No ID parameter provided for getIngredientById');
     res.status(400).json({ error: "ID parameter is required" });
     return;
   }
 
   try {
-      const ingredient = await ingredientModel.findOne({id: _id}).select("id name category imageURL");
+    const ingredient = await ingredientModel.findOne({id: _id}).select("id name category imageURL");
+    if (!ingredient) {
+      logger.warn('Ingredient not found by ID: %s', _id);
+      res.status(404).json({ error: "Ingredient not found" });
+      return;
+    }
+    logger.info('Fetched ingredient by ID: %s', _id);
     res.json(ingredient);
   } catch (error) {
+    logger.error('Error fetching ingredient by ID %s: %o', _id, error);
     res.status(500).json({ error: "Error fetching ingredients" });
   }
 }
@@ -92,6 +107,7 @@ const getIngredientsByQuery = async (req: Request, res: Response): Promise<void>
 
     // Validate that at least one query parameter is provided
     if (!name && !category) {
+      logger.warn("No query parameter provided for getIngredientsByQuery");
       res.status(400).json({ error: "At least one query parameter ('name' or 'category') is required." });
       return;
     }
@@ -110,14 +126,15 @@ const getIngredientsByQuery = async (req: Request, res: Response): Promise<void>
 
     // Handle no results found
     if (ingredients.length === 0) {
+      logger.warn("No ingredients found matching query: name=%s, category=%s", name, category);
       res.status(404).json({ error: "No ingredients found matching the query." });
       return;
     }
-
-    // Return the results
+    
+    logger.info("Fetched %d ingredients by query: name=%s, category=%s", ingredients.length, name, category);
     res.status(200).json(ingredients);
   } catch (error) {
-    console.error("Error fetching ingredients by query:", error);
+    logger.error("Error fetching ingredients by query: %o", error);
     res.status(500).json({ error: "Error fetching ingredients." });
   }
 };
@@ -127,6 +144,7 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
   const { name, category, imageURL } = req.body;
 
   if (!name || !category) {
+    logger.warn("Attempted to add ingredient with missing fields");
     res.status(400).json({ message: "Name and category are required." });
     return;
   }
@@ -146,6 +164,7 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
 
     // Check if the name already exists
     if (ingredients.some((ingredient: any) => ingredient.name === name)) {
+      logger.warn("Attempted to add duplicate ingredient: %s", name);
       res.status(400).json({ message: "Ingredient with this name already exists." });
       return;
     }
@@ -164,10 +183,10 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
-    // Return the new ingredient directly
+    logger.info("Ingredient added: %j", newIngredient);
     res.status(201).json(newIngredient);
   } catch (error) {
-    console.error("Error adding ingredient:", error);
+    logger.error("Error adding ingredient: %o", error);
     res.status(500).json({ message: "Error adding ingredient." });
   }
 };
@@ -178,6 +197,7 @@ const editIngredient = async (req: Request, res: Response): Promise<void> => {
   const { name, category, imageURL } = req.body;
 
   if (!id || (!name && !category)) {
+    logger.warn("Attempted to edit ingredient with missing fields");
     res.status(400).json({ message: "ID and at least one field (name or category) are required." });
     return;
   }
@@ -190,6 +210,7 @@ const editIngredient = async (req: Request, res: Response): Promise<void> => {
     // Find the ingredient by ID
     const ingredientIndex = ingredients.findIndex((ingredient: any) => ingredient.id === id);
     if (ingredientIndex === -1) {
+      logger.warn("Attempted to edit non-existent ingredient: %s", id);
       res.status(404).json({ message: "Ingredient not found." });
       return;
     }
@@ -202,9 +223,10 @@ const editIngredient = async (req: Request, res: Response): Promise<void> => {
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
+    logger.info("Ingredient edited: %j", ingredients[ingredientIndex]);
     res.status(200).json({ message: "Ingredient updated successfully.", ingredient: ingredients[ingredientIndex] });
   } catch (error) {
-    console.error("Error editing ingredient:", error);
+    logger.error("Error editing ingredient %s: %o", id, error);
     res.status(500).json({ message: "Error editing ingredient." });
   }
 };
@@ -214,6 +236,7 @@ const deleteIngredient = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   if (!id) {
+    logger.warn("Attempted to delete ingredient without ID");
     res.status(400).json({ message: "ID is required." });
     return;
   }
@@ -226,6 +249,7 @@ const deleteIngredient = async (req: Request, res: Response): Promise<void> => {
     // Find the ingredient by ID
     const ingredientIndex = ingredients.findIndex((ingredient: any) => ingredient.id === id);
     if (ingredientIndex === -1) {
+      logger.warn("Attempted to delete non-existent ingredient: %s", id);
       res.status(404).json({ message: "Ingredient not found." });
       return;
     }
@@ -236,9 +260,10 @@ const deleteIngredient = async (req: Request, res: Response): Promise<void> => {
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
+    logger.info("Ingredient deleted: %j", deletedIngredient[0]);
     res.status(200).json({ message: "Ingredient deleted successfully.", ingredient: deletedIngredient });
   } catch (error) {
-    console.error("Error deleting ingredient:", error);
+    logger.error("Error deleting ingredient %s: %o", id, error);
     res.status(500).json({ message: "Error deleting ingredient." });
   }
 };

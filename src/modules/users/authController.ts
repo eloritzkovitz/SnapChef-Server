@@ -5,6 +5,7 @@ import userModel from "./User";
 import fridgeModel from "../fridge/Fridge";
 import cookbookModel from "../cookbook/Cookbook";
 import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
+import logger from "../../utils/logger";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -18,6 +19,7 @@ const googleSignIn = async (req: Request, res: Response) => {
     });
     const payload = ticket.getPayload();
     if (!payload) {
+      logger.warn("Invalid Google ID token received");
       res.status(400).send("Invalid Google ID token");
       return;
     }
@@ -26,6 +28,7 @@ const googleSignIn = async (req: Request, res: Response) => {
     let user = await userModel.findOne({ email });
 
     if (!user) {
+      logger.info("Creating new user from Google sign-in: %s", email);
       // Create a new user if one does not exist
       user = await userModel.create({
         firstName: given_name,
@@ -35,6 +38,8 @@ const googleSignIn = async (req: Request, res: Response) => {
         profilePicture: picture,
         joinDate: new Date().toISOString(),
       });
+    } else {
+      logger.info("Existing user signed in with Google: %s", email);
     }
 
     // Generate tokens
@@ -48,6 +53,7 @@ const googleSignIn = async (req: Request, res: Response) => {
     user.refreshToken = tokens.refreshToken;
     await user.save();
 
+    logger.info("Google sign-in successful for user: %s", email);
     // Send back the tokens to the client
     res.status(200).send({
       accessToken: tokens.accessToken,
@@ -55,6 +61,7 @@ const googleSignIn = async (req: Request, res: Response) => {
       _id: user._id,
     });
   } catch (err) {
+    logger.error("Google sign-in error: %o", err);
     res.status(400).send(err);
   }
 };
@@ -92,8 +99,10 @@ const register = async (req: Request, res: Response) => {
     user.cookbookId = cookbook._id as any;
     await user.save();
 
+   logger.info("User registered: %s", req.body.email);
     res.status(200).send(user);
   } catch (err) {
+    logger.error("Registration error for %s: %o", req.body.email, err);
     res.status(400).send(err);
   }
 };
@@ -104,6 +113,7 @@ const login = async (req: Request, res: Response) => {
     // Find user by email
     const user = await userModel.findOne({ email: req.body.email });
     if (!user) {
+      logger.warn("Login failed: user not found (%s)", req.body.email);
       res.status(400).send("Wrong username or password");
       return;
     }
@@ -111,6 +121,7 @@ const login = async (req: Request, res: Response) => {
     // Validate password
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) {
+      logger.warn("Login failed: invalid password for %s", req.body.email);
       res.status(400).send("Wrong username or password");
       return;
     }
@@ -132,6 +143,7 @@ const login = async (req: Request, res: Response) => {
     user.refreshToken = tokens.refreshToken;
     await user.save();
 
+    logger.info("User logged in: %s", req.body.email);
     // Send back the tokens to the client
     res.status(200).send({
       accessToken: tokens.accessToken,
@@ -139,6 +151,7 @@ const login = async (req: Request, res: Response) => {
       _id: user._id,
     });
   } catch (err) {
+    logger.error("Login error for %s: %o", req.body.email, err);
     res.status(400).send(err);
   }
 };
@@ -155,8 +168,11 @@ const logout = async (req: Request, res: Response) => {
   try {
     const user = await verifyRefreshToken(refreshToken);
     await user.save();
+
+    logger.info("User logged out");
     res.status(200).send("success");
   } catch (err) {
+    logger.error("Logout error: %o", err);
     res.status(400).send("fail");
   }
 };
@@ -187,6 +203,7 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     }
     await user.save();
 
+    logger.info("Token refreshed for user: %s", user.email);
     res.status(200).json({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -194,6 +211,7 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     });
     return;
   } catch (err) {
+    logger.error("Token refresh error: %o", err);
     res.status(400).send("Failed to refresh token");
     return;
   }
