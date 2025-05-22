@@ -1,12 +1,12 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import bodyParser from "body-parser";
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUI from "swagger-ui-express";
 import path from "path";
 import fs from "fs";
 import cron from "node-cron";
+import mongoose from "mongoose";
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
 import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
 import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
@@ -17,7 +17,7 @@ import groceriesRoutes from "./modules/fridge/groceriesRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
-import { deleteExpiredReminders } from "./modules/notifications/cleanupExpiredReminders";
+import { deleteExpiredReminders } from "./modules/notifications/notificationUtils";
 
 const app = express();
 

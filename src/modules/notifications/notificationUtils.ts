@@ -1,4 +1,4 @@
-import Notification from '../../modules/notifications/Notification';
+import Notification from './Notification';
 import logger from '../../utils/logger';
 
 export const deleteExpiredReminders = async () => {
