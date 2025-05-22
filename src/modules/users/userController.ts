@@ -35,11 +35,7 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
 
 interface UpdateUserRequestBody {
   firstName?: string;
-  lastName?: string;
-  headline?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
+  lastName?: string;  
   password?: string;
   profilePicture?: string;
 }

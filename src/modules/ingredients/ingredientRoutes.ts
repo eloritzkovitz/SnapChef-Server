@@ -1,7 +1,7 @@
 import express from "express";
 import ingredientController from "./ingredientController";
-import upload from "../../middleware/upload";
-import { authenticate } from "../../middleware/auth";
+import upload from "../../middlewares/upload";
+import { authenticate, requireAdmin } from "../../middlewares/auth";
 
 const router = express.Router();
 /**
@@ -148,6 +148,9 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  *   post:
  *     summary: Add a new ingredient
  *     tags: [Ingredients]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Only admins can add new ingredients.
  *     requestBody:
  *       required: true
  *       content:
@@ -169,10 +172,14 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  *         description: Ingredient added successfully
  *       400:
  *         description: Ingredient with the same ID already exists
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
  *       500:
  *         description: Error adding ingredient
  */
-router.post("/add", authenticate, (req, res) => ingredientController.addIngredient(req, res));
+router.post("/add", authenticate, requireAdmin, (req, res) => ingredientController.addIngredient(req, res));
 
 /**
  * @swagger
@@ -180,6 +187,9 @@ router.post("/add", authenticate, (req, res) => ingredientController.addIngredie
  *   put:
  *     summary: Edit an existing ingredient
  *     tags: [Ingredients]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Only admins can edit ingredients.
  *     parameters:
  *       - in: path
  *         name: id
@@ -205,12 +215,16 @@ router.post("/add", authenticate, (req, res) => ingredientController.addIngredie
  *         description: Ingredient updated successfully
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
  *       404:
  *         description: Ingredient not found
  *       500:
  *         description: Error editing ingredient
  */
-router.put("/:id", authenticate, (req, res) => ingredientController.editIngredient(req, res));
+router.put("/:id", authenticate, requireAdmin, (req, res) => ingredientController.editIngredient(req, res));
 
 /**
  * @swagger
@@ -218,6 +232,9 @@ router.put("/:id", authenticate, (req, res) => ingredientController.editIngredie
  *   delete:
  *     summary: Delete an ingredient
  *     tags: [Ingredients]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Only admins can delete ingredients.
  *     parameters:
  *       - in: path
  *         name: id
@@ -230,11 +247,15 @@ router.put("/:id", authenticate, (req, res) => ingredientController.editIngredie
  *         description: Ingredient deleted successfully
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
  *       404:
  *         description: Ingredient not found
  *       500:
  *         description: Error deleting ingredient
  */
-router.delete("/:id", authenticate, (req, res) => ingredientController.deleteIngredient(req, res));
+router.delete("/:id", authenticate, requireAdmin, (req, res) => ingredientController.deleteIngredient(req, res));
 
 export default router;
