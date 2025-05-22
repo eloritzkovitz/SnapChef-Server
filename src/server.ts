@@ -12,6 +12,7 @@ import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
 import recognitionRoutes from "./modules/ingredients/recognitionRoutes";
 import recipeRoutes from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
+import groceriesRoutes from "./modules/fridge/groceriesRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
@@ -48,6 +49,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/ingredients/recognition", recognitionRoutes);
 app.use("/api/fridge", fridgeRoutes);
+app.use("/api/fridge/:fridgeId/groceries", groceriesRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/cookbook",cookbookRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -75,6 +77,7 @@ const options = {
     "./src/modules/**/ingredientRoutes.ts",
     "./src/modules/**/recognitionRoutes.ts",
     "./src/modules/**/fridgeRoutes.ts",
+    "./src/modules/**/groceriesRoutes.ts",
     "./src/modules/**/recipeRoutes.ts",    
     "./src/modules/**/cookbookRoutes.ts",    
     "./src/modules/**/analyticsRoutes.ts",

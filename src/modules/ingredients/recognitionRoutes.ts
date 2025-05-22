@@ -14,7 +14,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/ingredients/recognize/photo:
+ * /api/ingredients/recognition/photo:
  *   post:
  *     summary: Recognize ingredients from a photo
  *     tags: [Ingredient Recognition]
@@ -34,11 +34,11 @@ const router = express.Router();
  *         description: Recognized ingredients from photo
  */
 // Define routes
-router.post("/recognize/photo", authenticate, upload.single("file"), (req, res) =>  recognitionController.recognize(req, res, "photo"));
+router.post("/photo", authenticate, upload.single("file"), (req, res) =>  recognitionController.recognize(req, res, "photo"));
 
 /**
  * @swagger
- * /api/ingredients/recognize/receipt:
+ * /api/ingredients/recognition/receipt:
  *   post:
  *     summary: Recognize ingredients from a receipt image
  *     tags: [Ingredient Recognition]
@@ -57,11 +57,11 @@ router.post("/recognize/photo", authenticate, upload.single("file"), (req, res) 
  *       200:
  *         description: Recognized ingredients from receipt
  */
-router.post("/recognize/receipt", authenticate, upload.single("file"), (req, res) => recognitionController.recognize(req, res, "receipt"));
+router.post("/receipt", authenticate, upload.single("file"), (req, res) => recognitionController.recognize(req, res, "receipt"));
 
 /**
  * @swagger
- * /api/ingredients/recognize/barcode:
+ * /api/ingredients/recognition/barcode:
  *   post:
  *     summary: Recognize ingredients from a barcode image
  *     tags: [Ingredient Recognition]
@@ -80,6 +80,6 @@ router.post("/recognize/receipt", authenticate, upload.single("file"), (req, res
  *       200:
  *         description: Recognized ingredients from barcode
  */
-router.post("/recognize/barcode", authenticate, (req, res) => recognitionController.recognize(req, res, "barcode"));
+router.post("/barcode", authenticate, (req, res) => recognitionController.recognize(req, res, "barcode"));
 
 export default router;
