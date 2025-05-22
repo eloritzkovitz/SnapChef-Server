@@ -35,7 +35,7 @@ router.post("/", authenticate, fridgeController.createFridge);
 
 /**
  * @swagger
- * /api/fridge/{id}:
+ * /api/fridge/{fridgeId}:
  *   get:
  *     summary: Get all items in a fridge
  *     tags: [Fridge]
@@ -55,7 +55,7 @@ router.get("/:fridgeId/items", authenticate, fridgeController.getFridgeContent);
 
 /**
  * @swagger
- * /api/fridge/{id}/items:
+ * /api/fridge/{fridgeId}/items:
  *   post:
  *     summary: Add a new item to the fridge
  *     tags: [Fridge]
@@ -93,7 +93,7 @@ router.post("/:fridgeId/items", authenticate, fridgeController.addFridgeItem);
 
 /**
  * @swagger
- * /api/fridge/{id}/items/{itemId}:
+ * /api/fridge/{fridgeId}/items/{itemId}:
  *   put:
  *     summary: Update an item in the fridge
  *     tags: [Fridge]
@@ -137,7 +137,7 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
 
 /**
  * @swagger
- * /api/fridge/{id}/items/{itemId}:
+ * /api/fridge/{fridgeId}/items/{itemId}:
  *   delete:
  *     summary: Delete an item from the fridge
  *     tags: [Fridge]
