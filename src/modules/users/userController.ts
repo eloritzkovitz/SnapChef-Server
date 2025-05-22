@@ -7,12 +7,13 @@ import fridgeModel from "../fridge/Fridge";
 import cookbookModel from "../cookbook/Cookbook";
 import { deleteFile } from "../../utils/fileService";
 import logger from "../../utils/logger";
+import { getUserId } from "../../utils/requestHelpers";
 
-// Get user data
+// Get the authenticated user's data
 const getUserData = async (req: Request, res: Response): Promise<void> => {
   try {
     const requestedUserId = req.params.id;
-    const authenticatedUserId = req.params.userId;
+    const authenticatedUserId = getUserId(req);
 
     // Use the requested ID if available, otherwise fallback to the authenticated user
     const userId = requestedUserId || authenticatedUserId;
@@ -32,39 +33,9 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Find users by name
-const findUsersByName = async (req: Request, res: Response): Promise<void> => {
-  const query = req.query.query as string;
-  if (!query) {
-    logger.warn("User search attempted without query parameter");
-    res.status(400).json({ error: "Query parameter is required" });
-    return;
-  }
-
-  try {
-    const users = await userModel
-      .find({
-        $or: [
-          { firstName: { $regex: query, $options: "i" } },
-          { lastName: { $regex: query, $options: "i" } },
-        ],
-      })
-      .select("_id firstName lastName profilePicture");
-    logger.info("User search for query '%s' returned %d users", query, users.length);
-    res.json(users);
-  } catch (error) {
-    logger.error("Error fetching users by name: %o", error);
-    res.status(500).json({ error: "Error fetching users" });
-  }
-};
-
 interface UpdateUserRequestBody {
   firstName?: string;
-  lastName?: string;
-  headline?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
+  lastName?: string;  
   password?: string;
   profilePicture?: string;
 }
@@ -75,7 +46,7 @@ const updateUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.params.id;
+    const userId = getUserId(req);
     const user = await userModel.findById(userId);
     if (!user) {
       logger.warn("Attempted to update non-existent user: %s", userId);
@@ -132,7 +103,7 @@ const updatePreferences = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.params.id;
+    const userId = getUserId(req);
     const preferences = req.body;
 
     // Find the user
@@ -182,7 +153,7 @@ const deleteUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.params.id;
+    const userId = getUserId(req);
     const user = await userModel.findById(userId);
 
     if (!user) {
@@ -217,10 +188,55 @@ const deleteUser = async (
   }
 };
 
+// Get another user's public profile
+const getUserProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params.id;
+    const user = await userModel.findById(userId).select("_id firstName lastName profilePicture bio headline location website");
+    if (!user) {
+      logger.warn("Public profile not found for user: %s", userId);
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    logger.info("Public profile fetched for user: %s", userId);
+    res.json(user);
+  } catch (error) {
+    logger.error("Error fetching public profile for user %s: %o", req.params.id, error);
+    res.status(500).json({ message: "Error fetching user profile", error });
+  }
+};
+
+// Find users by name
+const findUsersByName = async (req: Request, res: Response): Promise<void> => {
+  const query = req.query.query as string;
+  if (!query) {
+    logger.warn("User search attempted without query parameter");
+    res.status(400).json({ error: "Query parameter is required" });
+    return;
+  }
+
+  try {
+    const users = await userModel
+      .find({
+        $or: [
+          { firstName: { $regex: query, $options: "i" } },
+          { lastName: { $regex: query, $options: "i" } },
+        ],
+      })
+      .select("_id firstName lastName profilePicture");
+    logger.info("User search for query '%s' returned %d users", query, users.length);
+    res.json(users);
+  } catch (error) {
+    logger.error("Error fetching users by name: %o", error);
+    res.status(500).json({ error: "Error fetching users" });
+  }
+};
+
 export default {  
-  getUserData,
-  findUsersByName,
+  getUserData,  
   updateUser,
   updatePreferences,
-  deleteUser,  
+  deleteUser,
+  getUserProfile,
+  findUsersByName,  
 };

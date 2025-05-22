@@ -1,67 +1,12 @@
 import { Request, Response } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import { recognizePhoto, recognizeReceipt, recognizeBarcode } from './imageRecognition';
 import  ingredientModel from './Ingredient';
 import { loadIngredientData } from './ingredientService';
 import logger from '../../utils/logger';
+import { getUserId } from '../../utils/requestHelpers';
 
 const ingredientsPath = path.resolve(process.cwd(), 'data/ingredientData.json');
-
-// Handle ingredient recognition
-export const recognize = async (req: Request, res: Response, type: string): Promise<void> => {
-  logger.info(`Received POST request at /recognize/${type}`);
-  try {
-    let result;
-
-    // For barcode: expect a barcode string in the request body
-    if (type === 'barcode') {      
-      const barcode = req.body.barcode;
-      if (!barcode) {
-        logger.warn('No barcode provided for barcode recognition');
-        res.status(400).json({ error: 'No barcode provided.' });
-        return;
-      }
-      result = await recognizeBarcode(barcode);
-      logger.info('Barcode recognized: %s, ingredients: %j', barcode, result);
-      res.json(result);
-      return;
-    }
-
-    // For photo/receipt: expect image file
-    const file = req.file;
-    if (!file) {
-      logger.warn('No file uploaded for %s recognition', type);
-      res.status(400).json({ error: 'No file uploaded.' });
-      return;
-    }
-
-    try {
-      switch (type) {
-        case 'photo':
-          result = await recognizePhoto(file.path);
-          logger.info('Photo recognized: %s, ingredients: %j', file.path, result);
-          break;
-        case 'receipt':
-          result = await recognizeReceipt(file.path);
-          logger.info('Receipt recognized: %s, ingredients: %j', file.path, result);
-          break;
-        default:
-          res.status(400).json({ error: 'Invalid recognition type.' });
-          return;
-      }
-      res.json(result);
-    } finally {
-      // Delete the file after processing
-      await fs.unlink(file.path).catch((err) => {
-        logger.error('Error deleting file %s: %o', file.path, err);
-      });
-    }
-  } catch (error) {
-    logger.error('Error recognizing %s: %o', type, error);
-    res.status(500).json({ error: 'Failed to recognize image.' });
-  }
-};
 
 // Get all ingredients
 const getAllIngredients = async (req: Request, res: Response): Promise<void> => {
@@ -142,6 +87,7 @@ const getIngredientsByQuery = async (req: Request, res: Response): Promise<void>
 // Add a new ingredient to the database
 const addIngredient = async (req: Request, res: Response): Promise<void> => {
   const { name, category, imageURL } = req.body;
+  const userId = getUserId(req);
 
   if (!name || !category) {
     logger.warn("Attempted to add ingredient with missing fields");
@@ -183,10 +129,10 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
-    logger.info("Ingredient added: %j", newIngredient);
+    logger.info("Ingredient added: %j by user: %s", newIngredient, userId);
     res.status(201).json(newIngredient);
   } catch (error) {
-    logger.error("Error adding ingredient: %o", error);
+    logger.error("Error adding ingredient by user: %s: %o", userId, error);
     res.status(500).json({ message: "Error adding ingredient." });
   }
 };
@@ -195,9 +141,10 @@ const addIngredient = async (req: Request, res: Response): Promise<void> => {
 const editIngredient = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { name, category, imageURL } = req.body;
+  const userId = getUserId(req);
 
   if (!id || (!name && !category)) {
-    logger.warn("Attempted to edit ingredient with missing fields");
+    logger.warn("Attempted to edit ingredient with missing fields by user: %s", userId);
     res.status(400).json({ message: "ID and at least one field (name or category) are required." });
     return;
   }
@@ -223,10 +170,10 @@ const editIngredient = async (req: Request, res: Response): Promise<void> => {
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
-    logger.info("Ingredient edited: %j", ingredients[ingredientIndex]);
+    logger.info("Ingredient edited: %j by user: %s", ingredients[ingredientIndex], userId);
     res.status(200).json({ message: "Ingredient updated successfully.", ingredient: ingredients[ingredientIndex] });
   } catch (error) {
-    logger.error("Error editing ingredient %s: %o", id, error);
+    logger.error("Error editing ingredient %s by user: %s: %o", id, userId, error);
     res.status(500).json({ message: "Error editing ingredient." });
   }
 };
@@ -234,9 +181,10 @@ const editIngredient = async (req: Request, res: Response): Promise<void> => {
 // Delete an ingredient from the database
 const deleteIngredient = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
+  const userId = getUserId(req);
 
   if (!id) {
-    logger.warn("Attempted to delete ingredient without ID");
+    logger.warn("Attempted to delete ingredient without ID by user: %s", userId);
     res.status(400).json({ message: "ID is required." });
     return;
   }
@@ -260,16 +208,15 @@ const deleteIngredient = async (req: Request, res: Response): Promise<void> => {
     // Write the updated data back to the file
     await fs.writeFile(ingredientsPath, JSON.stringify(ingredients, null, 2), "utf-8");
 
-    logger.info("Ingredient deleted: %j", deletedIngredient[0]);
+    logger.info("Ingredient deleted: %j by user: %s", deletedIngredient[0], userId);
     res.status(200).json({ message: "Ingredient deleted successfully.", ingredient: deletedIngredient });
   } catch (error) {
-    logger.error("Error deleting ingredient %s: %o", id, error);
+    logger.error("Error deleting ingredient %s by user: %s: %o", id, userId, error);
     res.status(500).json({ message: "Error deleting ingredient." });
   }
 };
 
-export default {
-  recognize,
+export default {  
   getAllIngredients,
   getIngredientById,
   getIngredientsByQuery,

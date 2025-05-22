@@ -1,19 +1,23 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import bodyParser from "body-parser";
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUI from "swagger-ui-express";
 import path from "path";
 import fs from "fs";
+import cron from "node-cron";
+import mongoose from "mongoose";
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
 import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
 import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
+import recognitionRoutes from "./modules/ingredients/recognitionRoutes";
 import recipeRoutes from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
+import groceriesRoutes from "./modules/fridge/groceriesRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
+import { deleteExpiredReminders } from "./modules/notifications/notificationUtils";
 
 const app = express();
 
@@ -31,7 +35,13 @@ app.use('/uploads', express.static(path.join(__dirname, '../dist/uploads')));
 // Connect to MongoDB
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
-db.once("open", () => console.log("Connected to Database"));
+db.once("open", () => {
+  console.log("Connected to Database");
+  // Schedule a cron job to delete expired reminders every minute
+  cron.schedule("* * * * *", async () => {
+  await deleteExpiredReminders();
+});
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -45,7 +55,9 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ingredients", ingredientRoutes);
+app.use("/api/ingredients/recognition", recognitionRoutes);
 app.use("/api/fridge", fridgeRoutes);
+app.use("/api/fridge/:fridgeId/groceries", groceriesRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/cookbook",cookbookRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -71,9 +83,12 @@ const options = {
     "./src/modules/**/authRoutes.ts",
     "./src/modules/**/userRoutes.ts",
     "./src/modules/**/ingredientRoutes.ts",
+    "./src/modules/**/recognitionRoutes.ts",
     "./src/modules/**/fridgeRoutes.ts",
+    "./src/modules/**/groceriesRoutes.ts",
     "./src/modules/**/recipeRoutes.ts",    
-    "./src/modules/**/cookbookRoutes.ts",    
+    "./src/modules/**/cookbookRoutes.ts",
+    "./src/modules/**/notificationRoutes.ts",    
     "./src/modules/**/analyticsRoutes.ts",
   ],
 };

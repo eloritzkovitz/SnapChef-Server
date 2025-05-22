@@ -1,84 +1,14 @@
 import express from "express";
 import ingredientController from "./ingredientController";
-import upload from "../../middleware/upload";
+import { authenticate, requireAdmin } from "../../middlewares/auth";
 
 const router = express.Router();
 /**
  * @swagger
  * tags:
  *   name: Ingredients
- *   description: API for recognizing ingredients from images, receipts or barcodes
+ *   description: API for fetching and managing ingredients
  */
-
-/**
- * @swagger
- * /api/ingredients/recognize/photo:
- *   post:
- *     summary: Recognize ingredients from a photo
- *     tags: [Ingredients]
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: Image file to analyze
- *     responses:
- *       200:
- *         description: Recognized ingredients from photo
- */
-// Define routes
-router.post("/recognize/photo", upload.single("file"), (req, res) =>  ingredientController.recognize(req, res, "photo"));
-
-/**
- * @swagger
- * /api/ingredients/recognize/receipt:
- *   post:
- *     summary: Recognize ingredients from a receipt image
- *     tags: [Ingredients]
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: Image file of a receipt
- *     responses:
- *       200:
- *         description: Recognized ingredients from receipt
- */
-router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "receipt"));
-
-/**
- * @swagger
- * /api/ingredients/recognize/barcode:
- *   post:
- *     summary: Recognize ingredients from a barcode image
- *     tags: [Ingredients]
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: Image file of a barcode
- *     responses:
- *       200:
- *         description: Recognized ingredients from barcode
- */
-router.post("/recognize/barcode", (req, res) => ingredientController.recognize(req, res, "barcode"));
 
 /**
  * @swagger
@@ -147,6 +77,9 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  *   post:
  *     summary: Add a new ingredient
  *     tags: [Ingredients]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Only admins can add new ingredients.
  *     requestBody:
  *       required: true
  *       content:
@@ -168,10 +101,14 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  *         description: Ingredient added successfully
  *       400:
  *         description: Ingredient with the same ID already exists
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
  *       500:
  *         description: Error adding ingredient
  */
-router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
+router.post("/add", authenticate, requireAdmin, (req, res) => ingredientController.addIngredient(req, res));
 
 /**
  * @swagger
@@ -179,6 +116,9 @@ router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
  *   put:
  *     summary: Edit an existing ingredient
  *     tags: [Ingredients]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Only admins can edit ingredients.
  *     parameters:
  *       - in: path
  *         name: id
@@ -204,12 +144,16 @@ router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
  *         description: Ingredient updated successfully
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
  *       404:
  *         description: Ingredient not found
  *       500:
  *         description: Error editing ingredient
  */
-router.put("/:id", (req, res) => ingredientController.editIngredient(req, res));
+router.put("/:id", authenticate, requireAdmin, (req, res) => ingredientController.editIngredient(req, res));
 
 /**
  * @swagger
@@ -217,6 +161,9 @@ router.put("/:id", (req, res) => ingredientController.editIngredient(req, res));
  *   delete:
  *     summary: Delete an ingredient
  *     tags: [Ingredients]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Only admins can delete ingredients.
  *     parameters:
  *       - in: path
  *         name: id
@@ -229,11 +176,15 @@ router.put("/:id", (req, res) => ingredientController.editIngredient(req, res));
  *         description: Ingredient deleted successfully
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
  *       404:
  *         description: Ingredient not found
  *       500:
  *         description: Error deleting ingredient
  */
-router.delete("/:id", (req, res) => ingredientController.deleteIngredient(req, res));
+router.delete("/:id", authenticate, requireAdmin, (req, res) => ingredientController.deleteIngredient(req, res));
 
 export default router;
