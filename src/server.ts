@@ -13,6 +13,7 @@ import recipeRoutes from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
+import analyticsRoutes from "./modules/analytics/analyticsRoutes";
 
 const app = express();
 
@@ -48,6 +49,8 @@ app.use("/api/fridge", fridgeRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/cookbook",cookbookRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
 
 app.get("/about", (req, res) => {
   res.send("This is the API for the SnapChef application.");
@@ -70,7 +73,8 @@ const options = {
     "./src/modules/**/ingredientRoutes.ts",
     "./src/modules/**/fridgeRoutes.ts",
     "./src/modules/**/recipeRoutes.ts",    
-    "./src/modules/**/cookbookRoutes.ts"
+    "./src/modules/**/cookbookRoutes.ts",    
+    "./src/modules/**/analyticsRoutes.ts",
   ],
 };
 const specs = swaggerJsDoc(options);
