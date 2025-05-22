@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import admin from 'firebase-admin';
 import Notification from './Notification';
+import { getUserId } from '../../utils/requestHelpers';
 
-// Send a push notification using Firebase Cloud Messaging
+// Helper to send a push notification using Firebase Cloud Messaging
 const sendPushNotification = async (
   token: string,
   title: string,
@@ -31,30 +32,37 @@ const sendPushNotification = async (
   }
 };
 
-// Create a new notification and send it to the user
+// Create a notification and (optionally) send a push notification
 export const createNotification = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { userId, type, title, body, metadata, deviceToken } = req.body;
+  try {    
+    const userId = getUserId(req);
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
 
-    if (!userId || !type || !title || !body || !deviceToken) {
+    const { type, title, body, metadata, deviceToken } = req.body;
+
+    if (!type || !title || !body) {
       res.status(400).json({ message: 'Missing required fields.' });
       return;
     }
 
-    // Store the notification in the DB
+    // Store the notification in the DB for local and history sync
     const notification = await Notification.create({
-      userId,
+      userId: userId,
       type,
       title,
       body,
       metadata,
     });
-    
-    // Send the push notification
-    await sendPushNotification(deviceToken, title, body, type, metadata);
+
+    // Optionally send a push notification if deviceToken is provided
+    if (deviceToken) {
+      await sendPushNotification(deviceToken, title, body, type, metadata);
+    }
 
     res.status(201).json(notification);
-    return;
   } catch (error) {
     console.error('Notification error:', error);
     res.status(500).json({ message: 'Failed to send notification.' });

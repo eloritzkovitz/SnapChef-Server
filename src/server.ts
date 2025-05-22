@@ -79,7 +79,8 @@ const options = {
     "./src/modules/**/fridgeRoutes.ts",
     "./src/modules/**/groceriesRoutes.ts",
     "./src/modules/**/recipeRoutes.ts",    
-    "./src/modules/**/cookbookRoutes.ts",    
+    "./src/modules/**/cookbookRoutes.ts",
+    "./src/modules/**/notificationRoutes.ts",    
     "./src/modules/**/analyticsRoutes.ts",
   ],
 };
