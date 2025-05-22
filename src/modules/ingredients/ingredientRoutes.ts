@@ -1,6 +1,7 @@
 import express from "express";
 import ingredientController from "./ingredientController";
 import upload from "../../middleware/upload";
+import { authenticate } from "../../middleware/auth";
 
 const router = express.Router();
 /**
@@ -32,7 +33,7 @@ const router = express.Router();
  *         description: Recognized ingredients from photo
  */
 // Define routes
-router.post("/recognize/photo", upload.single("file"), (req, res) =>  ingredientController.recognize(req, res, "photo"));
+router.post("/recognize/photo", authenticate, upload.single("file"), (req, res) =>  ingredientController.recognize(req, res, "photo"));
 
 /**
  * @swagger
@@ -55,7 +56,7 @@ router.post("/recognize/photo", upload.single("file"), (req, res) =>  ingredient
  *       200:
  *         description: Recognized ingredients from receipt
  */
-router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredientController.recognize(req, res, "receipt"));
+router.post("/recognize/receipt", authenticate, upload.single("file"), (req, res) => ingredientController.recognize(req, res, "receipt"));
 
 /**
  * @swagger
@@ -78,7 +79,7 @@ router.post("/recognize/receipt", upload.single("file"), (req, res) => ingredien
  *       200:
  *         description: Recognized ingredients from barcode
  */
-router.post("/recognize/barcode", (req, res) => ingredientController.recognize(req, res, "barcode"));
+router.post("/recognize/barcode", authenticate, (req, res) => ingredientController.recognize(req, res, "barcode"));
 
 /**
  * @swagger
@@ -171,7 +172,7 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  *       500:
  *         description: Error adding ingredient
  */
-router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
+router.post("/add", authenticate, (req, res) => ingredientController.addIngredient(req, res));
 
 /**
  * @swagger
@@ -209,7 +210,7 @@ router.post("/add", (req, res) => ingredientController.addIngredient(req, res));
  *       500:
  *         description: Error editing ingredient
  */
-router.put("/:id", (req, res) => ingredientController.editIngredient(req, res));
+router.put("/:id", authenticate, (req, res) => ingredientController.editIngredient(req, res));
 
 /**
  * @swagger
@@ -234,6 +235,6 @@ router.put("/:id", (req, res) => ingredientController.editIngredient(req, res));
  *       500:
  *         description: Error deleting ingredient
  */
-router.delete("/:id", (req, res) => ingredientController.deleteIngredient(req, res));
+router.delete("/:id", authenticate, (req, res) => ingredientController.deleteIngredient(req, res));
 
 export default router;
