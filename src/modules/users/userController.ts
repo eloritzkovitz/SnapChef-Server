@@ -1,15 +1,11 @@
 import { Request, Response } from "express";
 import path from "path";
 import bcrypt from "bcrypt";
-import { OAuth2Client } from "google-auth-library";
 import userModel from "./User";
 import { Preferences } from "./Preferences";
 import fridgeModel from "../fridge/Fridge";
 import cookbookModel from "../cookbook/Cookbook";
 import { deleteFile } from "../../utils/fileService";
-import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Get user data
 const getUserData = async (req: Request, res: Response): Promise<void> => {
