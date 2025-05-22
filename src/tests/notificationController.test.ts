@@ -16,7 +16,7 @@ jest.mock('../modules/notifications/Notification');
 
 const app = express();
 app.use(express.json());
-app.post('/notifications', notificationController.createNotification);
+//app.post('/notifications', notificationController.createNotification);
 
 describe('Notification Controller', () => {
   beforeEach(() => {
