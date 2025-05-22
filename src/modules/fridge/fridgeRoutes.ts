@@ -1,6 +1,6 @@
 import express from "express";
 import fridgeController from "./fridgeController";
-import { authenticate } from "../../middleware/auth";
+import { authenticate } from "../../middlewares/auth";
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 import express from "express";
 import cookbookController from "./cookbookController";
-import { authenticate } from "../../middleware/auth";
+import { authenticate } from "../../middlewares/auth";
 
 const router = express.Router();
 

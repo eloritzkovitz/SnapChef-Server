@@ -1,6 +1,6 @@
 import express from 'express';
 import { generateRecipe } from './recipeController';
-import { authenticate } from '../../middleware/auth';
+import { authenticate } from '../../middlewares/auth';
 
 const router = express.Router();
 /**
