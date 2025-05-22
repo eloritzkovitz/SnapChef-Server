@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import fridgeModel from "./Fridge";
+import logger from "../../utils/logger";
 
 // Create a new fridge
 const createFridge = async (req: Request, res: Response): Promise<void> => {
@@ -8,15 +9,17 @@ const createFridge = async (req: Request, res: Response): Promise<void> => {
 
     // Validate userId
     if (!userId) {
+      logger.warn("Attempted to create fridge without userId");
       res.status(400).json({ message: "User ID is required" });
       return;
     }
 
     const fridge = await fridgeModel.create({ ownerId: userId, ingredients: [], groceries: [] });
     
+    logger.info("Fridge created for user: %s (fridgeId: %s)", userId, fridge._id);    
     res.status(201).json(fridge);
   } catch (error) {
-    console.error("Error creating fridge:", error);
+    logger.error("Error creating fridge: %o", error);
     res.status(500).json({ message: "Error creating fridge", error });
   }
 };
@@ -29,13 +32,16 @@ const getFridgeContent = async (req: Request, res: Response): Promise<void> => {
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
 
+    logger.info("Fetched fridge content for fridgeId: %s", fridgeId);
     res.status(200).json(fridge.ingredients);
   } catch (error) {
     console.error("Error fetching fridge content:", error);
+    logger.error("Error fetching fridge content: %o", error);
     res.status(500).json({ message: "Error fetching fridge content", error });
   }
 };
@@ -48,6 +54,7 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
 
     // Validate input
     if (!id || !name || !category || !quantity) {
+      logger.warn("Attempted to add fridge item with missing fields (fridgeId: %s)", fridgeId);
       res.status(400).json({ message: "ID, name, category, and quantity are required" });
       return;
     }
@@ -55,6 +62,7 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when adding item: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
@@ -62,6 +70,7 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Check if the ingredient already exists in the fridge
     const existingIngredient = fridge.ingredients.find((ingredient) => ingredient.id === id);
     if (existingIngredient) {
+      logger.warn("Ingredient already exists in fridge %s: %s", fridgeId, id);
       res.status(400).json({ message: "Ingredient already exists in the fridge" });
       return;
     }
@@ -71,9 +80,10 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
     fridge.ingredients.push(newIngredient);
     await fridge.save();    
 
+    logger.info("Ingredient added to fridge %s: %j", fridgeId, newIngredient);
     res.status(201).json({ message: "Ingredient added successfully", ingredient: newIngredient });
   } catch (error) {
-    console.error("Error adding item to fridge:", error);
+    logger.error("Error adding item to fridge: %o", error);
     res.status(500).json({ message: "Error adding item to fridge", error });
   }
 };
@@ -86,6 +96,7 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
 
     // Validate input
     if (quantity === undefined || quantity === null || isNaN(quantity)) {
+      logger.warn("Invalid quantity for update in fridge %s, item %s", fridgeId, itemId);
       res.status(400).json({ message: "Valid quantity is required" });
       return;
     }
@@ -93,6 +104,7 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when updating item: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
@@ -100,22 +112,21 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Find the ingredient in the fridge's ingredients array
     const ingredient = fridge.ingredients.find((ingredient) => ingredient.id === itemId);
     if (!ingredient) {
+      logger.warn("Ingredient not found in fridge %s for update: %s", fridgeId, itemId);
       res.status(404).json({ message: "Ingredient not found in this fridge" });
       return;
     }    
 
     // Update the ingredient's quantity
-    ingredient.quantity = quantity;
-
-    // Explicitly mark the ingredients array as modified
-    fridge.markModified("ingredients");
-
-    // Save the updated fridge
+    ingredient.quantity = quantity;    
+    fridge.markModified("ingredients");    
     await fridge.save();    
 
+    logger.info("Ingredient updated in fridge %s: %j", fridgeId, ingredient);
     res.status(200).json({ message: "Ingredient updated successfully", ingredient });
   } catch (error) {
     console.error("Error updating item:", error);
+    logger.error("Error updating item in fridge: %o", error);
     res.status(500).json({ message: "Error updating item", error });
   }
 };
@@ -128,6 +139,7 @@ const deleteFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when deleting item: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
@@ -135,19 +147,19 @@ const deleteFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Find the ingredient before removing (for logging)
     const ingredientToDelete = fridge.ingredients.find(ingredient => ingredient.id === itemId);
     if (!ingredientToDelete) {
+      logger.warn("Ingredient not found in fridge %s for deletion: %s", fridgeId, itemId);
       res.status(404).json({ message: "Ingredient not found in this fridge" });
       return;
     }
 
     // Remove the ingredient from the fridge's ingredients array
     fridge.ingredients = fridge.ingredients.filter((ingredient) => ingredient.id !== itemId);
-
-    // Save the updated fridge
     await fridge.save();    
 
+    logger.info("Ingredient deleted from fridge %s: %j", fridgeId, ingredientToDelete);
     res.status(200).json({ message: "Ingredient deleted successfully" });
   } catch (error) {
-    console.error("Error deleting item:", error);
+    logger.error("Error deleting item from fridge: %o", error);
     res.status(500).json({ message: "Error deleting item", error });
   }
 };
@@ -160,13 +172,14 @@ const getGroceriesList = async (req: Request, res: Response): Promise<void> => {
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when fetching groceries: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
 
     res.status(200).json(fridge.groceries);
   } catch (error) {
-    console.error("Error fetching groceries list:", error);
+    logger.error("Error fetching groceries list: %o", error);
     res.status(500).json({ message: "Error fetching groceries list", error });
   }
 };
@@ -179,6 +192,7 @@ const addGroceryItem = async (req: Request, res: Response): Promise<void> => {
 
     // Validate input
     if (!id || !name || !category || !quantity) {
+      logger.warn("Attempted to add grocery item with missing fields (fridgeId: %s)", fridgeId);
       res.status(400).json({ message: "ID, name, category, and quantity are required" });
       return;
     }
@@ -186,6 +200,7 @@ const addGroceryItem = async (req: Request, res: Response): Promise<void> => {
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when adding grocery item: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
@@ -193,6 +208,7 @@ const addGroceryItem = async (req: Request, res: Response): Promise<void> => {
     // Check if the ingredient already exists in the list
     const existingIngredient = fridge.groceries.find((ingredient) => ingredient.id === id);
     if (existingIngredient) {
+      logger.warn("Ingredient already exists in groceries for fridge %s: %s", fridgeId, id);
       res.status(400).json({ message: "Ingredient already exists in the list" });
       return;
     }
@@ -202,9 +218,10 @@ const addGroceryItem = async (req: Request, res: Response): Promise<void> => {
     fridge.groceries.push(newIngredient);
     await fridge.save();    
 
+    logger.info("Grocery item added to fridge %s: %j", fridgeId, newIngredient);
     res.status(201).json({ message: "Grocery item added successfully", ingredient: newIngredient });
   } catch (error) {
-    console.error("Error adding item to groceries list:", error);
+    logger.error("Error adding item to groceries list: %o", error);
     res.status(500).json({ message: "Error adding item to groceries list", error });
   }
 };
@@ -217,6 +234,7 @@ const updateGroceryItem = async (req: Request, res: Response): Promise<void> => 
 
     // Validate input
     if (quantity === undefined || quantity === null || isNaN(quantity)) {
+      logger.warn("Invalid quantity for grocery update in fridge %s, item %s", fridgeId, itemId);
       res.status(400).json({ message: "Valid quantity is required" });
       return;
     }
@@ -224,27 +242,28 @@ const updateGroceryItem = async (req: Request, res: Response): Promise<void> => 
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when updating grocery item: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
+    
     // Find the ingredient in the fridge's groceries array
     const ingredient = fridge.groceries.find((ingredient) => ingredient.id === itemId);
     if (!ingredient) {
+      logger.warn("Ingredient not found in groceries for update in fridge %s: %s", fridgeId, itemId);
       res.status(404).json({ message: "Ingredient not found in this groceries list" });
       return;
     }
+
     // Update the ingredient's quantity
-    ingredient.quantity = quantity;
-
-    // Explicitly mark the ingredients array as modified
-    fridge.markModified("ingredients");
-
-    // Save the updated fridge
-    await fridge.save();    
-
+    ingredient.quantity = quantity;    
+    fridge.markModified("ingredients");    
+    await fridge.save(); 
+    
+    logger.info("Grocery item updated in fridge %s: %j", fridgeId, ingredient);
     res.status(200).json({ message: "Ingredient updated successfully", ingredient });
   } catch (error) {
-    console.error("Error updating item:", error);
+    logger.error("Error updating item in groceries list: %o", error);
     res.status(500).json({ message: "Error updating item", error });
   }
 };
@@ -257,6 +276,7 @@ const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => 
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
     if (!fridge) {
+      logger.warn("Fridge not found when deleting grocery item: %s", fridgeId);
       res.status(404).json({ message: "Fridge not found" });
       return;
     }
@@ -264,6 +284,7 @@ const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => 
     // Find the ingredient before removing (for logging)
     const ingredientToDelete = fridge.groceries.find(ingredient => ingredient.id === itemId);
     if (!ingredientToDelete) {
+      logger.warn("Ingredient not found in groceries for deletion in fridge %s: %s", fridgeId, itemId);
       res.status(404).json({ message: "Ingredient not found in this groceries list" });
       return;
     }
@@ -274,9 +295,10 @@ const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => 
     // Save the updated fridge
     await fridge.save();    
 
+    logger.info("Grocery item deleted from fridge %s: %j", fridgeId, ingredientToDelete);
     res.status(200).json({ message: "Ingredient deleted successfully" });
   } catch (error) {
-    console.error("Error deleting item:", error);
+    logger.error("Error deleting item from groceries list: %o", error);
     res.status(500).json({ message: "Error deleting item", error });
   }
 };
