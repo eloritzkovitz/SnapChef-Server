@@ -3,24 +3,26 @@ import mongoose from "mongoose";
 import cookbookModel from "./Cookbook";
 import { extractTitleFromPrompt, extractDescriptionFromPrompt } from "./cookbookUtils";
 import logger from "../../utils/logger";
+import { getUserId } from "../../utils/requestHelpers";
 
 // Get a cookbook with all recipes
 const getCookbookContent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { cookbookId } = req.params;
+    const userId = getUserId(req);
 
     const cookbook = await cookbookModel.findById(cookbookId);
 
     if (!cookbook) {
-      logger.warn("Cookbook not found when fetching content: %s", cookbookId);
+      logger.warn("Cookbook not found when fetching content: %s (user: %s)", cookbookId, userId);
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
 
-    logger.info("Fetched cookbook content for cookbookId: %s", cookbookId);
+    logger.info("Fetched cookbook content for cookbookId: %s (user: %s)", cookbookId, userId);
     res.status(200).json({ cookbook });
   } catch (error) {
-    logger.error("Error fetching cookbook %s: %o", req.params.cookbookId, error);
+    logger.error("Error fetching cookbook %s (user: %s): %o", req.params.cookbookId, getUserId(req), error);
     res.status(500).json({ message: "Failed to fetch cookbook", error: (error as Error).message });
   }
 };
@@ -30,18 +32,19 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
     const { cookbookId } = req.params;
     const recipeData = req.body;
+    const userId = getUserId(req);
 
     const cookbook = await cookbookModel.findById(cookbookId);
 
     if (!cookbook) {
-      logger.warn("Cookbook not found when adding recipe: %s", cookbookId);
+      logger.warn("Cookbook not found when adding recipe: %s (user: %s)", cookbookId, userId);
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
 
     // Validate required fields
     if (!recipeData.title || !recipeData.description) {
-      logger.warn("Attempted to add recipe with missing title/description to cookbook: %s", cookbookId);
+      logger.warn("Attempted to add recipe with missing title/description to cookbook: %s (user: %s)", cookbookId, userId);
       res.status(400).json({ message: "Title and description are required." });
       return;
     }
@@ -72,11 +75,10 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
     // Save the updated cookbook
     await cookbook.save();
 
-    logger.info("Recipe added to cookbook %s: %j", cookbookId, newRecipe);
+    logger.info("Recipe added to cookbook %s: %j (user: %s)", cookbookId, newRecipe, userId);
     res.status(200).json({ message: "Recipe added to cookbook", cookbook });
   } catch (error) {
-    logger.error("Error adding recipe to cookbook %s: %o", req.params.cookbookId, error);
-    console.error("Error adding recipe to cookbook:", error);
+    logger.error("Error adding recipe to cookbook %s (user: %s): %o", req.params.cookbookId, getUserId(req), error);
     res.status(500).json({
       message: "Failed to add recipe to cookbook",
       error: (error as Error).message,
@@ -89,11 +91,12 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
     const { cookbookId, recipeId } = req.params;
     const updatedRecipeData = req.body;
+    const userId = getUserId(req);
 
     const cookbook = await cookbookModel.findById(cookbookId);
 
     if (!cookbook) {
-      logger.warn("Cookbook not found when updating recipe: %s", cookbookId);
+      logger.warn("Cookbook not found when updating recipe: %s (user: %s)", cookbookId, userId);
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
@@ -102,7 +105,7 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     const recipeIndex = cookbook.recipes.findIndex((recipe) => recipe._id === recipeId);
 
     if (recipeIndex === -1) {
-      logger.warn("Recipe not found in cookbook %s for update: %s", cookbookId, recipeId);
+      logger.warn("Recipe not found in cookbook %s for update: %s (user: %s)", cookbookId, recipeId, userId);
       res.status(404).json({ message: "Recipe not found in cookbook" });
       return;
     }
@@ -113,10 +116,10 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     // Save the updated cookbook
     await cookbook.save();
 
-    logger.info("Recipe updated in cookbook %s: %j", cookbookId, cookbook.recipes[recipeIndex]);
+    logger.info("Recipe updated in cookbook %s: %j (user: %s)", cookbookId, cookbook.recipes[recipeIndex], userId);
     res.status(200).json({ message: "Recipe updated in cookbook", recipe: cookbook.recipes[recipeIndex] });
   } catch (error) {
-    logger.error("Error updating recipe in cookbook %s: %o", req.params.cookbookId, error);
+    logger.error("Error updating recipe in cookbook %s (user: %s): %o", req.params.cookbookId, getUserId(req), error);
     res.status(500).json({ message: "Failed to update recipe in cookbook", error: (error as Error).message });
   }
 };
@@ -125,24 +128,27 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
 const removeRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
     const { cookbookId, recipeId } = req.params;
+    const userId = getUserId(req);
 
     const cookbook = await cookbookModel.findById(cookbookId);
 
     if (!cookbook) {
-      logger.warn("Cookbook not found when removing recipe: %s", cookbookId);
+      logger.warn("Cookbook not found when removing recipe: %s (user: %s)", cookbookId, userId);
       res.status(404).json({ message: "Cookbook not found" });
       return;
     }
 
+    // Find the recipe to remove for logging
+    const recipeToRemove = cookbook.recipes.find((recipe) => recipe._id === recipeId);
+
     // Filter out the recipe by _id
-    const recipeToRemove = cookbook.recipes.filter((recipe) => recipe._id !== recipeId);
     cookbook.recipes = cookbook.recipes.filter((recipe) => recipe._id !== recipeId);
     await cookbook.save();
 
-    logger.info("Recipe removed from cookbook %s: %j", cookbookId, recipeToRemove);
+    logger.info("Recipe removed from cookbook %s: %j (user: %s)", cookbookId, recipeToRemove, userId);
     res.status(200).json({ message: "Recipe removed from cookbook", cookbook });
   } catch (error) {
-    logger.error("Error removing recipe from cookbook %s: %o", req.params.cookbookId, error);
+    logger.error("Error removing recipe from cookbook %s (user: %s): %o", req.params.cookbookId, getUserId(req), error);
     res.status(500).json({ message: "Failed to remove recipe from cookbook", error: (error as Error).message });
   }
 };

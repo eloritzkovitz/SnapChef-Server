@@ -1,5 +1,6 @@
 import express from 'express';
 import { generateRecipe } from './recipeController';
+import { authenticate } from '../../middleware/auth';
 
 const router = express.Router();
 /**
@@ -59,6 +60,6 @@ const router = express.Router();
  *         description: Invalid input or generation error
  */
 
-router.post('/generate', generateRecipe);
+router.post('/generate', authenticate, generateRecipe);
 
 export default router;

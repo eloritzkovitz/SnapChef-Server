@@ -6,7 +6,7 @@ type Payload = {
 };
 
 // Middleware to check if the user is authenticated
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = (req: Request, res: Response, next: NextFunction) => {
     const authorization = req.header('authorization');
     const token = authorization && authorization.split(' ')[1];
 
@@ -23,8 +23,8 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         if (err) {
             res.status(401).send('Access Denied');
             return;
-        }
-        req.params.userId = (payload as Payload)._id;
+        }        
+        (req as any).user = { id: (payload as Payload)._id };
         next();
     });
 };

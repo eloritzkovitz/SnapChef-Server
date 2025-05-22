@@ -1,6 +1,6 @@
 import express from "express";
 import fridgeController from "./fridgeController";
-import { authMiddleware } from "../../middleware/auth";
+import { authenticate } from "../../middleware/auth";
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ const router = express.Router();
  *         description: Fridge created successfully
  */
 // Create a new fridge
-router.post("/", authMiddleware, fridgeController.createFridge);
+router.post("/", authenticate, fridgeController.createFridge);
 
 /**
  * @swagger
@@ -51,7 +51,7 @@ router.post("/", authMiddleware, fridgeController.createFridge);
  *         description: List of fridge items
  */
 // Get fridge content
-router.get("/:fridgeId/items", authMiddleware, fridgeController.getFridgeContent);
+router.get("/:fridgeId/items", authenticate, fridgeController.getFridgeContent);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.get("/:fridgeId/items", authMiddleware, fridgeController.getFridgeContent
  *         description: Item added successfully
  */
 // Add a new item to the fridge
-router.post("/:fridgeId/items", authMiddleware, fridgeController.addFridgeItem);
+router.post("/:fridgeId/items", authenticate, fridgeController.addFridgeItem);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.post("/:fridgeId/items", authMiddleware, fridgeController.addFridgeItem);
  *         description: Item updated successfully
  */
 // Update an item in the fridge
-router.put("/:fridgeId/items/:itemId", authMiddleware, fridgeController.updateFridgeItem);
+router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFridgeItem);
 
 /**
  * @swagger
@@ -159,7 +159,7 @@ router.put("/:fridgeId/items/:itemId", authMiddleware, fridgeController.updateFr
  *         description: Item deleted successfully
  */
 // Delete an item from the fridge
-router.delete("/:fridgeId/items/:itemId", authMiddleware, fridgeController.deleteFridgeItem);
+router.delete("/:fridgeId/items/:itemId", authenticate, fridgeController.deleteFridgeItem);
 
 /**
  * @swagger
@@ -178,7 +178,7 @@ router.delete("/:fridgeId/items/:itemId", authMiddleware, fridgeController.delet
  *       200:
  *         description: List of grocery items
  */
-router.get("/:fridgeId/groceries", authMiddleware, fridgeController.getGroceriesList);
+router.get("/:fridgeId/groceries", authenticate, fridgeController.getGroceriesList);
 
 /**
  * @swagger
@@ -214,7 +214,7 @@ router.get("/:fridgeId/groceries", authMiddleware, fridgeController.getGroceries
  *       201:
  *         description: Item added to groceries list successfully
  */
-router.post("/:fridgeId/groceries", authMiddleware, fridgeController.addGroceryItem);
+router.post("/:fridgeId/groceries", authenticate, fridgeController.addGroceryItem);
 
 /**
  * @swagger
@@ -254,7 +254,7 @@ router.post("/:fridgeId/groceries", authMiddleware, fridgeController.addGroceryI
  *       200:
  *         description: Item updated successfully in groceries list
  */
-router.put("/:fridgeId/groceries/:itemId", authMiddleware, fridgeController.updateGroceryItem);
+router.put("/:fridgeId/groceries/:itemId", authenticate, fridgeController.updateGroceryItem);
 
 /**
  * @swagger
@@ -279,6 +279,6 @@ router.put("/:fridgeId/groceries/:itemId", authMiddleware, fridgeController.upda
  *       200:
  *         description: Item deleted from groceries list successfully
  */
-router.delete("/:fridgeId/groceries/:itemId", authMiddleware, fridgeController.deleteGroceryItem);
+router.delete("/:fridgeId/groceries/:itemId", authenticate, fridgeController.deleteGroceryItem);
 
 export default router;
