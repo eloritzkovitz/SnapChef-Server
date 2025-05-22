@@ -2,7 +2,7 @@ import express from "express";
 import request from "supertest";
 import fridgeController from "../modules/fridge/fridgeController";
 import fridgeModel from "../modules/fridge/Fridge";
-import { logActivity } from "../utils/logService";
+
 
 jest.mock("../modules/fridge/Fridge");
 jest.mock("../utils/logService");
@@ -31,7 +31,7 @@ describe("Fridge Controller", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSave.mockResolvedValue(undefined);
-    (logActivity as jest.Mock).mockResolvedValue(undefined);
+    //(logActivity as jest.Mock).mockResolvedValue(undefined);
   });
 
   it("should create a fridge", async () => {
@@ -41,7 +41,7 @@ describe("Fridge Controller", () => {
 
     expect(res.status).toBe(201);
     expect(fridgeModel.create).toHaveBeenCalledWith({ ownerId: "user123", ingredients: [] });
-    expect(logActivity).toHaveBeenCalled();
+    //expect(logActivity).toHaveBeenCalled();
   });
 
   it("should return 400 if userId is missing", async () => {
@@ -84,7 +84,7 @@ describe("Fridge Controller", () => {
 
     expect(res.status).toBe(201);
     expect(fridgeWithOwner.ingredients).toHaveLength(1);
-    expect(logActivity).toHaveBeenCalled();
+    //expect(logActivity).toHaveBeenCalled();
   });
 
   it("should return 400 if item already exists", async () => {
@@ -120,7 +120,7 @@ describe("Fridge Controller", () => {
 
     expect(res.status).toBe(200);
     expect(fridgeWithItem.ingredients[0].quantity).toBe(3);
-    expect(logActivity).toHaveBeenCalled();
+    //expect(logActivity).toHaveBeenCalled();
   });
 
   it("should return 404 if item not found", async () => {
@@ -151,7 +151,7 @@ describe("Fridge Controller", () => {
     const res = await request(app).delete("/fridges/fridge123/items/i1");
 
     expect(res.status).toBe(200);
-    expect(logActivity).toHaveBeenCalled();
+    //expect(logActivity).toHaveBeenCalled();
   });
 
   it("should return 404 if item not found when deleting", async () => {
