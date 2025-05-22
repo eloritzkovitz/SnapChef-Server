@@ -111,7 +111,7 @@ router.put("/:itemId", authenticate, groceriesController.updateGroceryItem);
  * /api/fridge/{fridgeId}/groceries/{itemId}:
  *   delete:
  *     summary: Delete an item from the groceries list
- *     tags: [Fridge]
+ *     tags: [Groceries]
  *     parameters:
  *       - in: path
  *         name: id
