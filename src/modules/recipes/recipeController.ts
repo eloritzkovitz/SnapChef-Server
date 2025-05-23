@@ -41,7 +41,7 @@ export const generateRecipe = async (req: Request, res: Response): Promise<void>
         userId,
         imageError
       );
-      imageUrl = "https://via.placeholder.com/400x300?text=No+Image";
+      imageUrl = "";
     }
 
     logger.info("Recipe generated with ingredients: %s | Recipe: %j (user: %s)", ingredients, recipe, userId);

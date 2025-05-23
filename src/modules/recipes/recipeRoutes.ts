@@ -114,6 +114,6 @@ const router = express.Router();
  *         description: Invalid input or generation error
  */
 
-router.post('/generate', authenticate, generateRecipe);
+router.post('/generation', authenticate, generateRecipe);
 
 export default router;
