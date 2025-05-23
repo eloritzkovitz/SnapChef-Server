@@ -13,6 +13,61 @@ const router = express.Router();
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     Notification:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - type
+ *         - title
+ *         - body
+ *         - createdAt
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Unique identifier for the notification
+ *         userId:
+ *           type: string
+ *           description: ID of the user receiving the notification
+ *         type:
+ *           type: string
+ *           enum: [expiry, grocery, friend, share, update]
+ *           description: Type of notification
+ *         title:
+ *           type: string
+ *           description: Notification title
+ *         body:
+ *           type: string
+ *           description: Notification message content
+ *         ingredientName:
+ *           type: string
+ *           description: Ingredient name (for expiry/grocery notifications)
+ *         scheduledTime:
+ *           type: string
+ *           format: date-time
+ *           description: Scheduled time for the notification (if applicable)
+ *         metadata:
+ *           type: object
+ *           description: Additional metadata for the notification
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Creation date of the notification
+ *       example:
+ *         _id: "abc123"
+ *         userId: "user456"
+ *         type: "expiry"
+ *         title: "Ingredient Expiry Reminder"
+ *         body: "Your milk is about to expire."
+ *         ingredientName: "Milk"
+ *         scheduledTime: "2024-06-01T10:00:00.000Z"
+ *         metadata: { "fridgeId": "fridge789" }
+ *         createdAt: "2024-05-23T12:00:00.000Z"
+ */
+
+/**
+ * @swagger
  * /api/notifications:
  *   get:
  *     summary: Get all notifications for the authenticated user
@@ -33,7 +88,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', authenticate, notificationController.getNotifications);   
+router.get('/', authenticate, notificationController.getNotifications);
 
 /**
  * @swagger
@@ -53,15 +108,32 @@ router.get('/', authenticate, notificationController.getNotifications);
  *               title:
  *                 type: string
  *                 description: Title of the notification
- *               message:
+ *               body:
  *                 type: string
  *                 description: Notification message content
  *               type:
  *                 type: string
  *                 description: Type of notification (e.g., info, warning)
+ *               metadata:
+ *                 type: object
+ *                 description: Additional metadata for the notification
+ *               scheduledTime:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Scheduled time for the notification (if applicable)
+ *               ingredientName:
+ *                 type: string
+ *                 description: Ingredient name (for expiry/grocery notifications)
+ *               deviceToken:
+ *                 type: string
+ *                 description: Device token for push notification (optional)
  *     responses:
  *       201:
  *         description: Notification created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Notification'
  *       400:
  *         description: Invalid input
  *       401:
@@ -70,7 +142,7 @@ router.get('/', authenticate, notificationController.getNotifications);
  *         description: Server error
  */
 router.post('/', authenticate, notificationController.createNotification);
-  
+
 /**
  * @swagger
  * /api/notifications/{id}:
@@ -104,9 +176,15 @@ router.post('/', authenticate, notificationController.createNotification);
  *               scheduledTime:
  *                 type: string
  *                 format: date-time
+ *               ingredientName:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Notification updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Notification'
  *       400:
  *         description: Invalid input
  *       401:
@@ -116,7 +194,7 @@ router.post('/', authenticate, notificationController.createNotification);
  *       500:
  *         description: Server error
  */
-router.put('/:id', authenticate, notificationController.updateNotification); 
+router.put('/:id', authenticate, notificationController.updateNotification);
 
 /**
  * @swagger

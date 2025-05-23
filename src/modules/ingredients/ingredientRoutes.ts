@@ -3,11 +3,46 @@ import ingredientController from "./ingredientController";
 import { authenticate, requireAdmin } from "../../middlewares/auth";
 
 const router = express.Router();
+
 /**
  * @swagger
  * tags:
  *   name: Ingredients
  *   description: API for fetching and managing ingredients
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Ingredient:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *         - category
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier for the ingredient
+ *         name:
+ *           type: string
+ *           description: Name of the ingredient
+ *         category:
+ *           type: string
+ *           description: Category of the ingredient
+ *         imageURL:
+ *           type: string
+ *           description: URL of the ingredient image
+ *         quantity:
+ *           type: number
+ *           description: Quantity of the ingredient
+ *       example:
+ *         id: "1"
+ *         name: "Tomato"
+ *         category: "Vegetable"
+ *         imageURL: "https://example.com/images/tomato.jpg"
+ *         quantity: 5
  */
 
 /**
@@ -85,20 +120,14 @@ router.get("/:id", (req, res) => ingredientController.getIngredientById(req, res
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: string
- *                 description: Unique identifier for the ingredient
- *               name:
- *                 type: string
- *                 description: Name of the ingredient
- *               category:
- *                 type: string
- *                 description: Category of the ingredient
+ *             $ref: '#/components/schemas/Ingredient'
  *     responses:
  *       200:
  *         description: Ingredient added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Ingredient'
  *       400:
  *         description: Ingredient with the same ID already exists
  *       401:
@@ -131,17 +160,14 @@ router.post("/add", authenticate, requireAdmin, (req, res) => ingredientControll
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: New name of the ingredient
- *               category:
- *                 type: string
- *                 description: New category of the ingredient
+ *             $ref: '#/components/schemas/Ingredient'
  *     responses:
  *       200:
  *         description: Ingredient updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Ingredient'
  *       400:
  *         description: Invalid input
  *       401:

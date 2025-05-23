@@ -17,6 +17,8 @@ const router = express.Router();
  *   post:
  *     summary: Add a recipe to the cookbook
  *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: cookbookId
@@ -29,35 +31,14 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               mealType:
- *                 type: string
- *               cuisineType:
- *                 type: string
- *               difficulty:
- *                 type: string
- *               cookingTime:
- *                 type: number
- *               prepTime:
- *                 type: number
- *               ingredients:
- *                 type: array
- *                 items:
- *                   type: string
- *               instructions:
- *                 type: array
- *                 items:
- *                   type: string
- *               imageURL:
- *                 type: string
+ *             $ref: '#/components/schemas/Recipe'
  *     responses:
  *       200:
  *         description: Recipe added to the cookbook
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Recipe'
  */
 router.post("/:cookbookId/recipes", authenticate, cookbookController.addRecipe);
 
@@ -67,6 +48,8 @@ router.post("/:cookbookId/recipes", authenticate, cookbookController.addRecipe);
  *   put:
  *     summary: Update a recipe in the cookbook
  *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: cookbookId
@@ -85,35 +68,14 @@ router.post("/:cookbookId/recipes", authenticate, cookbookController.addRecipe);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               mealType:
- *                 type: string
- *               cuisineType:
- *                 type: string
- *               difficulty:
- *                 type: string
- *               cookingTime:
- *                 type: number
- *               prepTime:
- *                 type: number
- *               ingredients:
- *                 type: array
- *                 items:
- *                   type: string
- *               instructions:
- *                 type: array
- *                 items:
- *                   type: string
- *               imageURL:
- *                 type: string
+ *             $ref: '#/components/schemas/Recipe'
  *     responses:
  *       200:
  *         description: Recipe updated in the cookbook
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Recipe'
  */
 router.put("/:cookbookId/recipes/:recipeId", authenticate, cookbookController.updateRecipe);
 
@@ -123,6 +85,8 @@ router.put("/:cookbookId/recipes/:recipeId", authenticate, cookbookController.up
  *   delete:
  *     summary: Remove a recipe from the cookbook
  *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: cookbookId
@@ -148,6 +112,8 @@ router.delete("/:cookbookId/recipes/:recipeId", authenticate, cookbookController
  *   get:
  *     summary: Get a cookbook with all recipes
  *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: cookbookId
@@ -158,6 +124,22 @@ router.delete("/:cookbookId/recipes/:recipeId", authenticate, cookbookController
  *     responses:
  *       200:
  *         description: The cookbook with all recipes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cookbook:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     ownerId:
+ *                       type: string
+ *                     recipes:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Recipe'
  */
 router.get("/:cookbookId", authenticate, cookbookController.getCookbookContent);
 

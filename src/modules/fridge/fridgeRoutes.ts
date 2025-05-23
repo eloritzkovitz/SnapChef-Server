@@ -17,6 +17,8 @@ const router = express.Router();
  *   post:
  *     summary: Create a new fridge for a user
  *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -30,18 +32,19 @@ const router = express.Router();
  *       201:
  *         description: Fridge created successfully
  */
-// Create a new fridge
 router.post("/", authenticate, fridgeController.createFridge);
 
 /**
  * @swagger
- * /api/fridge/{fridgeId}:
+ * /api/fridge/{fridgeId}/items:
  *   get:
  *     summary: Get all items in a fridge
  *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: fridgeId
  *         required: true
  *         schema:
  *           type: string
@@ -49,8 +52,13 @@ router.post("/", authenticate, fridgeController.createFridge);
  *     responses:
  *       200:
  *         description: List of fridge items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Ingredient'
  */
-// Get fridge content
 router.get("/:fridgeId/items", authenticate, fridgeController.getFridgeContent);
 
 /**
@@ -59,9 +67,11 @@ router.get("/:fridgeId/items", authenticate, fridgeController.getFridgeContent);
  *   post:
  *     summary: Add a new item to the fridge
  *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: fridgeId
  *         required: true
  *         schema:
  *           type: string
@@ -71,24 +81,15 @@ router.get("/:fridgeId/items", authenticate, fridgeController.getFridgeContent);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               category:
- *                 type: string
- *               quantity:
- *                 type: number
- *               expiryDate:
- *                 type: string
- *                 format: date
- *               imageURL:
- *                 type: string
+ *             $ref: '#/components/schemas/Ingredient'
  *     responses:
  *       201:
  *         description: Item added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Ingredient'
  */
-// Add a new item to the fridge
 router.post("/:fridgeId/items", authenticate, fridgeController.addFridgeItem);
 
 /**
@@ -97,9 +98,11 @@ router.post("/:fridgeId/items", authenticate, fridgeController.addFridgeItem);
  *   put:
  *     summary: Update an item in the fridge
  *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: fridgeId
  *         required: true
  *         schema:
  *           type: string
@@ -115,24 +118,15 @@ router.post("/:fridgeId/items", authenticate, fridgeController.addFridgeItem);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               category:
- *                 type: string
- *               quantity:
- *                 type: number
- *               expiryDate:
- *                 type: string
- *                 format: date
- *               imageURL:
- *                 type: string
+ *             $ref: '#/components/schemas/Ingredient'
  *     responses:
  *       200:
  *         description: Item updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Ingredient'
  */
-// Update an item in the fridge
 router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFridgeItem);
 
 /**
@@ -141,9 +135,11 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
  *   delete:
  *     summary: Delete an item from the fridge
  *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: fridgeId
  *         required: true
  *         schema:
  *           type: string
@@ -158,7 +154,6 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
  *       200:
  *         description: Item deleted successfully
  */
-// Delete an item from the fridge
 router.delete("/:fridgeId/items/:itemId", authenticate, fridgeController.deleteFridgeItem);
 
 export default router;
