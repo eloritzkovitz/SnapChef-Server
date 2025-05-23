@@ -8,10 +8,14 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
 if (!OPENAI_API_KEY) {
-  throw new Error("Missing OpenAI API key. Set OPENAI_API_KEY in your .env file.");
+  throw new Error(
+    "Missing OpenAI API key. Set OPENAI_API_KEY in your .env file."
+  );
 }
 if (!UNSPLASH_ACCESS_KEY) {
-  throw new Error("Missing Unsplash API key. Set UNSPLASH_ACCESS_KEY in your .env file.");
+  throw new Error(
+    "Missing Unsplash API key. Set UNSPLASH_ACCESS_KEY in your .env file."
+  );
 }
 
 /**
@@ -24,8 +28,19 @@ export async function generateImageForRecipe(recipe: {
   ingredients?: string[] | string;
   instructions?: string[] | string;
 }): Promise<string | null> {
-  // Compose a descriptive prompt for OpenAI based on the recipe details
-  let prompt = `A high-quality food photo of "${recipe.title}"`;
+  // Remove markdown and "Recipe:" from the title for the prompt
+  let safeTitle = recipe.title
+    .replace(/&/g, "and")
+    .replace(/[^a-zA-Z0-9\s\-()]/g, "")
+    .trim();
+
+  const words = safeTitle.split(" ");
+  if (words.length > 10) {
+    safeTitle = words.slice(0, 10).join(" ");
+  }
+  safeTitle = safeTitle.trim();
+
+  let prompt = `A high-quality food photo of "${safeTitle}"`;
   if (recipe.description) {
     prompt += `. Description: ${recipe.description}`;
   }
@@ -35,28 +50,31 @@ export async function generateImageForRecipe(recipe: {
       : recipe.ingredients;
     prompt += `. Ingredients: ${ingredientsList}`;
   }
-  if (recipe.instructions) {
-    prompt += `.`;
-  }
+  prompt += ".";
 
   try {
-    // Try OpenAI image generation first
     return await generateImageWithOpenAI(prompt);
   } catch (error) {
-    logger.warn("Falling back to Unsplash for image: %s", (error as Error).message);
-    // Use the recipe title as the fallback query for Unsplash
-    return await getImageForRecipe(recipe.title);
+    logger.warn(
+      "Falling back to Unsplash for image: %s",
+      (error as Error).message
+    );
+    return await getImageForRecipe(safeTitle);
   }
 }
 
 // Generate an image using OpenAI API
-export const generateImageWithOpenAI = async (prompt: string): Promise<string> => {
+export const generateImageWithOpenAI = async (
+  prompt: string
+): Promise<string> => {
   if (!prompt || prompt.trim().length < 10) {
-    throw new Error("Invalid image prompt. Prompt must be at least 10 characters.");
+    throw new Error(
+      "Invalid image prompt. Prompt must be at least 10 characters."
+    );
   }
 
   try {
-    logger.info("🟡 Prompt to OpenAI: %s", prompt);
+    logger.info("Prompt to OpenAI: %s", prompt);
 
     const response = await axios.post(
       "https://api.openai.com/v1/images/generations",
@@ -88,13 +106,15 @@ export const generateImageWithOpenAI = async (prompt: string): Promise<string> =
 };
 
 // Get an image from Unsplash
-export const getImageForRecipe = async (query: string): Promise<string | null> => {
+export const getImageForRecipe = async (
+  query: string
+): Promise<string | null> => {
   try {
     const response = await axios.get("https://api.unsplash.com/search/photos", {
       params: {
         query,
         per_page: 1,
-        orientation: "landscape"
+        orientation: "landscape",
       },
       headers: {
         Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
