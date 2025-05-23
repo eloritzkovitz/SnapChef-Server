@@ -17,6 +17,8 @@ const router = express.Router({ mergeParams: true });
  *   get:
  *     summary: Get all items in the groceries list
  *     tags: [Groceries]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: fridgeId
@@ -27,6 +29,12 @@ const router = express.Router({ mergeParams: true });
  *     responses:
  *       200:
  *         description: List of grocery items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Ingredient'
  */
 router.get("/", authenticate, groceriesController.getGroceriesList);
 
@@ -36,6 +44,8 @@ router.get("/", authenticate, groceriesController.getGroceriesList);
  *   post:
  *     summary: Add a new item to the groceries list
  *     tags: [Groceries]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: fridgeId
@@ -48,21 +58,14 @@ router.get("/", authenticate, groceriesController.getGroceriesList);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: string
- *               name:
- *                 type: string
- *               category:
- *                 type: string
- *               imageURL:
- *                 type: string
- *               quantity:
- *                 type: number
+ *             $ref: '#/components/schemas/Ingredient'
  *     responses:
  *       201:
  *         description: Item added to groceries list successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Ingredient'
  */
 router.post("/", authenticate, groceriesController.addGroceryItem);
 
@@ -72,6 +75,8 @@ router.post("/", authenticate, groceriesController.addGroceryItem);
  *   put:
  *     summary: Update an item in the groceries list
  *     tags: [Groceries]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: fridgeId
@@ -90,19 +95,14 @@ router.post("/", authenticate, groceriesController.addGroceryItem);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               category:
- *                 type: string
- *               imageURL:
- *                 type: string
- *               quantity:
- *                 type: number
+ *             $ref: '#/components/schemas/Ingredient'
  *     responses:
  *       200:
  *         description: Item updated successfully in groceries list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Ingredient'
  */
 router.put("/:itemId", authenticate, groceriesController.updateGroceryItem);
 
@@ -112,9 +112,11 @@ router.put("/:itemId", authenticate, groceriesController.updateGroceryItem);
  *   delete:
  *     summary: Delete an item from the groceries list
  *     tags: [Groceries]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: fridgeId
  *         required: true
  *         schema:
  *           type: string
