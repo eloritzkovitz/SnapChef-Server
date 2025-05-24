@@ -56,6 +56,9 @@ const router = express.Router();
  *         rating:
  *           type: number
  *           nullable: true
+ *        source:
+ *           type: string
+ *           enum: ['ai', 'user', 'manual']
  *       example:
  *         _id: "abc123"
  *         title: "Spaghetti Bolognese"
