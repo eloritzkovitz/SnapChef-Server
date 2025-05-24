@@ -117,6 +117,7 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
       instructions: recipeData.instructions || [],
       imageURL: recipeData.imageURL || "",
       rating: recipeData.rating || 0.0,
+      source: recipeData.source || "ai",
       raw: recipeData.raw || parsed.raw || "",
     };
 
