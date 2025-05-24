@@ -56,9 +56,9 @@ const router = express.Router();
  *         rating:
  *           type: number
  *           nullable: true
- *        source:
+ *         source:
  *           type: string
- *           enum: ['ai', 'user', 'manual']
+ *           enum: ['ai', 'user']
  *       example:
  *         _id: "abc123"
  *         title: "Spaghetti Bolognese"
@@ -75,6 +75,7 @@ const router = express.Router();
  *         instructions: "1. Boil the spaghetti. 2. Cook the beef. 3. Mix with sauce."
  *         imageURL: "https://example.com/spaghetti.jpg"
  *         rating: 4.5
+ *         source: "ai"
  */
 
 /**
