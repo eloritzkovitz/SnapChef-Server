@@ -76,7 +76,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/recipes/generation:
+ * /api/recipes/:
  *   post:
  *     summary: Generate a recipe based on ingredients and preferences
  *     tags: [Recipes]
@@ -119,11 +119,11 @@ const router = express.Router();
  *       400:
  *         description: Invalid input or generation error
  */
-router.post('/generation', authenticate, generateRecipe);
+router.post('/', authenticate, generateRecipe);
 
 /**
  * @swagger
- * /api/recipes/generation/image:
+ * /api/recipes/image:
  *   post:
  *     summary: Generate an image for a recipe
  *     tags: [Recipes]
@@ -162,6 +162,6 @@ router.post('/generation', authenticate, generateRecipe);
  *       500:
  *         description: Failed to generate image
  */
-router.post('/generation/image', authenticate, generateRecipeImage);
+router.post('/image', authenticate, generateRecipeImage);
 
 export default router;

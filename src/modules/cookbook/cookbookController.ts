@@ -5,6 +5,7 @@ import { getField } from "./cookbookUtils";
 import { parseRecipeString } from "../recipes/recipeParser";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
+import { generateImageForRecipe } from "../recipes/imageGeneration";
 
 // Get a cookbook with all recipes
 const getCookbookContent = async (
@@ -214,6 +215,78 @@ const updateRecipe = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Regenerate the image for a recipe
+const regenerateRecipeImage = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { cookbookId, recipeId } = req.params;
+    const userId = getUserId(req);
+
+    const cookbook = await cookbookModel.findById(cookbookId);
+    if (!cookbook) {
+      logger.warn(
+        "Cookbook not found when regenerating image: %s (user: %s)",
+        cookbookId,
+        userId
+      );
+      res.status(404).json({ message: "Cookbook not found" });
+      return;
+    }
+
+    // Find the recipe by _id
+    const recipe = cookbook.recipes.find((r) => r._id === recipeId);
+    if (!recipe) {
+      logger.warn(
+        "Recipe not found in cookbook %s for image regeneration: %s (user: %s)",
+        cookbookId,
+        recipeId,
+        userId
+      );
+      res.status(404).json({ message: "Recipe not found in cookbook" });
+      return;
+    }    
+
+    // Generate the image
+    const imageUrl = await generateImageForRecipe({
+      title: recipe.title,      
+      ingredients: recipe.ingredients.map((ingredient: any) => ingredient.name),      
+    });
+
+    if (!imageUrl) {
+      logger.error(
+        "Failed to generate image for recipe %s in cookbook %s (user: %s)",
+        recipeId,
+        cookbookId,
+        userId
+      );
+      res.status(500).json({ message: "Failed to generate image" });
+      return;
+    }
+
+    // Update the recipe's imageURL
+    recipe.imageURL = imageUrl;
+    await cookbook.save();
+
+    logger.info(
+      "Regenerated image for recipe %s in cookbook %s (user: %s)",
+      recipeId,
+      cookbookId,
+      userId
+    );
+    res.status(200).json({ imageUrl });
+  } catch (error) {
+    logger.error(
+      "Error regenerating image for recipe in cookbook %s (user: %s): %o",
+      req.params.cookbookId,
+      getUserId(req),
+      error
+    );
+    res.status(500).json({
+      message: "Failed to regenerate image for recipe in cookbook",
+      error: (error as Error).message,
+    });
+  }
+};
+
 // Remove a recipe from a cookbook
 const removeRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -268,5 +341,6 @@ export default {
   getCookbookContent,
   addRecipe,
   updateRecipe,
+  regenerateRecipeImage,
   removeRecipe,
 };

@@ -81,6 +81,60 @@ router.put("/:cookbookId/recipes/:recipeId", authenticate, cookbookController.up
 
 /**
  * @swagger
+ * /api/cookbook/{cookbookId}/recipes/{recipeId}/image:
+ *   post:
+ *     summary: Generate or update an image for a recipe in the cookbook
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cookbookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the cookbook
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the recipe
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               prompt:
+ *                 type: string
+ *                 example: "A vibrant photo of vegan chili"
+ *                 description: Optional custom prompt for image generation
+ *     responses:
+ *       200:
+ *         description: Successfully generated or updated the image
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 imageUrl:
+ *                   type: string
+ *                   example: "/uploads/vegan_chili_123456789.jpg"
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: Recipe not found
+ *       500:
+ *         description: Failed to generate image
+ */
+router.post("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookController.regenerateRecipeImage);
+
+/**
+ * @swagger
  * /api/cookbook/{cookbookId}/recipes/{recipeId}:
  *   delete:
  *     summary: Remove a recipe from the cookbook
