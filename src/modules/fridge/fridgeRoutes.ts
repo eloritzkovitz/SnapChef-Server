@@ -131,6 +131,58 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
 
 /**
  * @swagger
+ * /api/fridge/{fridgeId}/items/reorder:
+ *   post:
+ *     summary: Reorder items in a fridge
+ *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fridgeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderedItemIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["itemId1", "itemId2", "itemId3"]
+ *                 description: Array of item IDs in the desired order
+ *     responses:
+ *       200:
+ *         description: Fridge items reordered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Fridge items reordered
+ *                 fridge:
+ *                   type: object
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: Fridge not found
+ *       500:
+ *         description: Failed to reorder fridge items
+ */
+router.post("/:fridgeId/items/reorder", authenticate, fridgeController.reorderFridgeItems);
+
+/**
+ * @swagger
  * /api/fridge/{fridgeId}/items/{itemId}:
  *   delete:
  *     summary: Delete an item from the fridge

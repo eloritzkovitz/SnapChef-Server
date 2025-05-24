@@ -135,6 +135,58 @@ router.post("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookContro
 
 /**
  * @swagger
+ * /api/cookbook/{cookbookId}/recipes/reorder:
+ *   post:
+ *     summary: Reorder recipes in a cookbook
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cookbookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the cookbook
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderedRecipeIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["recipeId1", "recipeId2", "recipeId3"]
+ *                 description: Array of recipe IDs in the desired order
+ *     responses:
+ *       200:
+ *         description: Recipes reordered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Recipes reordered
+ *                 cookbook:
+ *                   $ref: '#/components/schemas/Cookbook'
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: Cookbook not found
+ *       500:
+ *         description: Failed to reorder recipes
+ */
+router.post("/:cookbookId/recipes/reorder", authenticate, cookbookController.reorderRecipes);
+
+/**
+ * @swagger
  * /api/cookbook/{cookbookId}/recipes/{recipeId}:
  *   delete:
  *     summary: Remove a recipe from the cookbook
