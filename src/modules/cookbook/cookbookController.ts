@@ -232,8 +232,8 @@ const regenerateRecipeImage = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Find the recipe by _id
-    const recipe = cookbook.recipes.find((r) => r._id === recipeId);
+    // Find the recipe by _id (ensure string comparison)
+    const recipe = cookbook.recipes.find((r) => r._id.toString() === recipeId);
     if (!recipe) {
       logger.warn(
         "Recipe not found in cookbook %s for image regeneration: %s (user: %s)",
@@ -247,8 +247,14 @@ const regenerateRecipeImage = async (req: Request, res: Response): Promise<void>
 
     // Generate the image
     const imageUrl = await generateImageForRecipe({
-      title: recipe.title,      
-      ingredients: recipe.ingredients.map((ingredient: any) => ingredient.name),      
+      title: recipe.title,
+      ingredients: Array.isArray(recipe.ingredients)
+        ? recipe.ingredients.map((ingredient: any) =>
+            typeof ingredient === "string"
+              ? ingredient
+              : ingredient.name || ""
+          )
+        : [],
     });
 
     if (!imageUrl) {
@@ -262,8 +268,9 @@ const regenerateRecipeImage = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Update the recipe's imageURL
+    // Update the recipe's imageURL and mark as modified
     recipe.imageURL = imageUrl;
+    cookbook.markModified("recipes");
     await cookbook.save();
 
     logger.info(
