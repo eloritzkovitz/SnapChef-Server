@@ -81,3 +81,40 @@ export const generateRecipe = async (
     res.status(500).json({ error: (error as Error).message });
   }
 };
+
+// Generate an image for a recipe
+export const generateRecipeImage = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const { title, ingredients } = req.body;
+    
+    if (!userId) {
+      logger.warn("Recipe image generation attempted without authentication");
+      res.status(401).json({ error: "Authentication required." });
+      return;
+    }
+
+    if (!title) {
+      logger.warn("Recipe image generation attempted without title");
+      res.status(400).json({ error: "Recipe title is required" });
+      return;
+    }
+    const imageUrl = await generateImageForRecipe({
+      title,
+      ingredients,
+    });
+    if (!imageUrl) {
+      logger.error("Failed to generate image for recipe: %s (user: %s)", title, userId);
+      res.status(500).json({ error: "Failed to generate image" });
+      return;
+    }
+    logger.info("Image generated for recipe: %s (user: %s)", title, userId);
+    res.json({ imageUrl });
+  } catch (error: any) {
+    logger.error("Error generating image for recipe: %s (user: %s): %o", req.body.title, getUserId(req), error);
+    res.status(500).json({ error: error.message || "Internal server error" });
+  }
+};

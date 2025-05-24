@@ -1,5 +1,5 @@
 import express from 'express';
-import { generateRecipe } from './recipeController';
+import { generateRecipe, generateRecipeImage } from './recipeController';
 import { authenticate } from '../../middlewares/auth';
 
 const router = express.Router();
@@ -76,7 +76,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/recipes/generate:
+ * /api/recipes/generation:
  *   post:
  *     summary: Generate a recipe based on ingredients and preferences
  *     tags: [Recipes]
@@ -109,11 +109,59 @@ const router = express.Router();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Recipe'
+ *               type: object
+ *               properties:
+ *                 recipe:
+ *                   $ref: '#/components/schemas/Recipe'
+ *                 imageUrl:
+ *                   type: string
+ *                   example: "/uploads/spaghetti_bolognese_123456789.jpg"
  *       400:
  *         description: Invalid input or generation error
  */
-
 router.post('/generation', authenticate, generateRecipe);
+
+/**
+ * @swagger
+ * /api/recipes/generation/image:
+ *   post:
+ *     summary: Generate an image for a recipe
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Spaghetti Bolognese"
+ *               ingredients:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["spaghetti", "ground beef", "tomato sauce"]
+ *     responses:
+ *       200:
+ *         description: Successfully generated an image
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 imageUrl:
+ *                   type: string
+ *                   example: "/uploads/spaghetti_bolognese_123456789.jpg"
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Authentication required
+ *       500:
+ *         description: Failed to generate image
+ */
+router.post('/generation/image', authenticate, generateRecipeImage);
 
 export default router;

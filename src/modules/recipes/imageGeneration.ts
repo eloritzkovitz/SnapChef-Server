@@ -53,10 +53,8 @@ async function getGoogleAccessToken(): Promise<string> {
  * Generate an image for a recipe using Google Cloud Stable Diffusion, OpenAI, or Unsplash as fallback.
  */
 export async function generateImageForRecipe(recipe: {
-  title: string;
-  description?: string;
-  ingredients?: string[] | string;
-  instructions?: string[] | string;
+  title: string;  
+  ingredients?: string[] | string;  
 }): Promise<string | null> {
   // Clean the title: remove quotes and trim
   let safeTitle = recipe.title
@@ -90,7 +88,7 @@ export async function generateImageForRecipe(recipe: {
     return imageUrl;
   } catch (error: any) {
     logger.warn(
-      "Falling back to OpenAI for image: %s",
+      "Falling back to next option for image: %s",
       JSON.stringify(error.response?.data || error.message)
     );
   }
