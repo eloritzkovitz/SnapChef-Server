@@ -14,6 +14,7 @@ interface Recipe {
   instructions: string[];
   imageURL?: string;
   rating: number | null;
+  source: 'ai' | 'user' | 'manual';
 }
 
 interface Cookbook extends Document {  
