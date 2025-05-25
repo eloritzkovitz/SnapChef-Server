@@ -109,7 +109,7 @@ router.put("/:itemId", authenticate, groceriesController.updateGroceryItem);
 /**
  * @swagger
  * /api/fridge/{fridgeId}/groceries/reorder:
- *   post:
+ *   patch:
  *     summary: Reorder groceries in a fridge
  *     tags: [Groceries]
  *     security:
@@ -158,7 +158,7 @@ router.put("/:itemId", authenticate, groceriesController.updateGroceryItem);
  *       500:
  *         description: Failed to reorder groceries
  */
-router.post("/reorder", authenticate, groceriesController.reorderGroceries);
+router.patch("/reorder", authenticate, groceriesController.reorderGroceries);
 
 /**
  * @swagger

@@ -136,7 +136,7 @@ router.post("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookContro
 /**
  * @swagger
  * /api/cookbook/{cookbookId}/recipes/reorder:
- *   post:
+ *   patch:
  *     summary: Reorder recipes in a cookbook
  *     tags: [Cookbook]
  *     security:
@@ -183,7 +183,7 @@ router.post("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookContro
  *       500:
  *         description: Failed to reorder recipes
  */
-router.post("/:cookbookId/recipes/reorder", authenticate, cookbookController.reorderRecipes);
+router.patch("/:cookbookId/recipes/reorder", authenticate, cookbookController.reorderRecipes);
 
 /**
  * @swagger
