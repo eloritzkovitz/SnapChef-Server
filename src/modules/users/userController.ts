@@ -147,6 +147,33 @@ const updatePreferences = async (
   }
 };
 
+// Update FCM token
+const updateFcmToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const { fcmToken } = req.body;
+
+    if (!fcmToken) {
+      res.status(400).json({ message: "FCM token is required" });
+      return;
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    user.fcmToken = fcmToken;
+    await user.save();
+
+    res.status(200).json({ message: "FCM token updated successfully" });
+  } catch (error) {
+    logger.error("Error updating FCM token for user %s: %o", getUserId(req), error);
+    res.status(500).json({ message: "Error updating FCM token", error });
+  }
+};
+
 // Delete user data
 const deleteUser = async (
   req: Request<{ id: string }>,
@@ -236,6 +263,7 @@ export default {
   getUserData,  
   updateUser,
   updatePreferences,
+  updateFcmToken,
   deleteUser,
   getUserProfile,
   findUsersByName,  

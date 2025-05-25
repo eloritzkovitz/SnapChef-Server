@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import userModel from "./User";
 import FriendRequest from "./FriendRequest";
 import logger from "../../utils/logger";
+import { messaging } from "../../utils/firebaseMessaging";
 import { getUserId } from "../../utils/requestHelpers";
 
 // Send a friend request
@@ -18,7 +19,7 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
     // Check if already friends
     const user = await userModel.findById(from);
 
-    if (user?.friends.map((f) => f.toString()).includes(to)) {
+    if (user && Array.isArray(user.friends) && user.friends.map((f: any) => f.toString()).includes(to.toString())) {
       res.status(400).json({ message: "Already friends." });
       return;
     }
@@ -35,7 +36,27 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
     }
 
     const request = await FriendRequest.create({ from, to });
-    // TODO: Send Firebase notification here
+
+    // Send Firebase notification to recipient
+    try {
+      const recipient = await userModel.findById(to);
+      if (recipient?.fcmToken) {
+        await messaging.send({
+          token: recipient.fcmToken,
+          notification: {
+            title: "New Friend Request",
+            body: "You have a new friend request!",
+          },
+          data: {
+            type: "FRIEND_REQUEST",
+            fromUserId: from ? from.toString() : "",
+            requestId: (request._id as string | { toString(): string }).toString(),
+          },
+        });
+      }
+    } catch (notifyError) {
+      logger.warn("Failed to send FCM notification: %o", notifyError);
+    }
 
     res.status(201).json({ message: "Friend request sent.", request });
   } catch (error) {
@@ -66,7 +87,7 @@ const acceptFriendRequest = async (req: Request, res: Response): Promise<void> =
     const { requestId } = req.params;
 
     const request = await FriendRequest.findById(requestId);
-    if (!request || request.to.toString() !== userId) {
+    if (!userId || !request || request.to.toString() !== userId.toString()) {
       res.status(404).json({ message: "Friend request not found." });
       return;
     }
@@ -86,7 +107,26 @@ const acceptFriendRequest = async (req: Request, res: Response): Promise<void> =
     request.status = "accepted";
     await request.save();
 
-    // TODO: Send notification to sender
+    // Send Firebase notification to sender
+    try {
+      const sender = await userModel.findById(request.from);
+      if (sender?.fcmToken) {
+        await messaging.send({
+          token: sender.fcmToken,
+          notification: {
+            title: "Friend Request Accepted",
+            body: "Your friend request was accepted!",
+          },
+          data: {
+            type: "FRIEND_REQUEST_ACCEPTED",
+            toUserId: userId ? userId.toString() : "",
+            requestId: (request._id as string | { toString(): string }).toString(),
+          },
+        });
+      }
+    } catch (notifyError) {
+      logger.warn("Failed to send FCM notification: %o", notifyError);
+    }
 
     res.json({ message: "Friend request accepted." });
   } catch (error) {
@@ -102,7 +142,7 @@ const declineFriendRequest = async (req: Request, res: Response): Promise<void> 
     const { requestId } = req.params;
 
     const request = await FriendRequest.findById(requestId);
-    if (!request || request.to.toString() !== userId) {
+    if (!userId || !request || request.to.toString() !== userId.toString()) {
       res.status(404).json({ message: "Friend request not found." });
       return;
     }
@@ -114,7 +154,26 @@ const declineFriendRequest = async (req: Request, res: Response): Promise<void> 
     request.status = "declined";
     await request.save();
 
-    // TODO: Send notification to sender
+    // Send Firebase notification to sender
+    try {
+      const sender = await userModel.findById(request.from);
+      if (sender?.fcmToken) {
+        await messaging.send({
+          token: sender.fcmToken,
+          notification: {
+            title: "Friend Request Declined",
+            body: "Your friend request was declined.",
+          },
+          data: {
+            type: "FRIEND_REQUEST_DECLINED",
+            toUserId: userId.toString(),
+            requestId: (request._id as string | { toString(): string }).toString(),
+          },
+        });
+      }
+    } catch (notifyError) {
+      logger.warn("Failed to send FCM notification: %o", notifyError);
+    }
 
     res.json({ message: "Friend request declined." });
   } catch (error) {

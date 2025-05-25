@@ -241,6 +241,38 @@ router.put("/me/preferences", authenticate, usersController.updatePreferences);
 
 /**
  * @swagger
+ * /api/users/me/fcm-token:
+ *   put:
+ *     summary: Update the FCM token for the current user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *                 example: "your-fcm-token"
+ *     responses:
+ *       200:
+ *         description: FCM token updated successfully
+ *       400:
+ *         description: FCM token is required
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error updating FCM token
+ */
+router.put("/me/fcm-token", authenticate, usersController.updateFcmToken);
+
+/**
+ * @swagger
  * /api/users/me:
  *   delete:
  *     summary: Delete current user
