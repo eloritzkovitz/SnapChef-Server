@@ -295,39 +295,6 @@ router.delete("/me", authenticate, usersController.deleteUser);
 
 /**
  * @swagger
- * /api/users/{id}:
- *   get:
- *     summary: Get another user's public profile
- *     description: Retrieve public profile information for another user by their ID.
- *     tags:
- *       - Users
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The user ID
- *     responses:
- *       200:
- *         description: The user's public profile
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: User not found
- *       500:
- *         description: Server error
- */
-router.get("/:id", authenticate, usersController.getUserProfile);
-
-/**
- * @swagger
  * /api/users:
  *   get:
  *     summary: Search users by name
@@ -371,5 +338,38 @@ router.get("/:id", authenticate, usersController.getUserProfile);
  *         description: Server error
  */
 router.get("/", authenticate, usersController.findUsersByName);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get another user's public profile
+ *     description: Retrieve public profile information for another user by their ID.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: The user's public profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/:id", authenticate, usersController.getUserProfile);
 
 export default router;
