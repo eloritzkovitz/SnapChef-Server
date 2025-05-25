@@ -15,6 +15,7 @@ export interface IUser {
   friends: mongoose.Schema.Types.ObjectId[];
   joinDate?: string;
   refreshToken?: string;
+  fcmToken?: string;
 }
 
 const UserSchema = new mongoose.Schema({
@@ -29,7 +30,8 @@ const UserSchema = new mongoose.Schema({
   preferences: { type: PreferencesSchema, default: {}, required: true },
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Users', default: [] }],
   joinDate: { type: String, required: true },
-  refreshToken: { type: String, default: "" }
+  refreshToken: { type: String, default: "" },
+  fcmToken: { type: String, default: "" }
 });
 
 const userModel = mongoose.model<IUser>("Users", UserSchema);
