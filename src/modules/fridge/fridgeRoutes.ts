@@ -132,7 +132,7 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
 /**
  * @swagger
  * /api/fridge/{fridgeId}/items/reorder:
- *   post:
+ *   patch:
  *     summary: Reorder items in a fridge
  *     tags: [Fridge]
  *     security:
@@ -179,7 +179,7 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
  *       500:
  *         description: Failed to reorder fridge items
  */
-router.post("/:fridgeId/items/reorder", authenticate, fridgeController.reorderFridgeItems);
+router.patch("/:fridgeId/items/reorder", authenticate, fridgeController.reorderFridgeItems);
 
 /**
  * @swagger
