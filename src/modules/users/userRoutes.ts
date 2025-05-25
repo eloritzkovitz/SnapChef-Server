@@ -40,7 +40,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /users/me:
+ * /api/users/me:
  *   get:
  *     summary: Get current user data
  *     description: Retrieve the authenticated user's data.
@@ -66,7 +66,7 @@ router.get("/me", authenticate, usersController.getUserData);
 
 /**
  * @swagger
- * /users/me:
+ * /api/users/me:
  *   put:
  *     summary: Update current user data
  *     description: Update the authenticated user's details including first name, last name, password, and profile picture.
@@ -110,7 +110,7 @@ router.put("/me", authenticate, upload.single("profilePicture"), usersController
 
 /**
  * @swagger
- * /users/me/preferences:
+ * /api/users/me/preferences:
  *   put:
  *     summary: Update current user preferences
  *     description: Update the authenticated user's preferences such as allergies and dietary preferences.
@@ -241,7 +241,7 @@ router.put("/me/preferences", authenticate, usersController.updatePreferences);
 
 /**
  * @swagger
- * /users/me:
+ * /api/users/me:
  *   delete:
  *     summary: Delete current user
  *     description: Delete the authenticated user's account, including their profile picture and associated data.
@@ -263,7 +263,7 @@ router.delete("/me", authenticate, usersController.deleteUser);
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/users/{id}:
  *   get:
  *     summary: Get another user's public profile
  *     description: Retrieve public profile information for another user by their ID.
@@ -296,7 +296,7 @@ router.get("/:id", authenticate, usersController.getUserProfile);
 
 /**
  * @swagger
- * /users:
+ * /api/users:
  *   get:
  *     summary: Search users by name
  *     description: Retrieve a list of users whose first or last name matches the query.
