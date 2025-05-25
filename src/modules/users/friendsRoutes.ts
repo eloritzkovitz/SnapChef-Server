@@ -6,7 +6,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/users/{id}/friend-request:
+ * /api/users/friends/requests/{id}:
  *   post:
  *     summary: Send a friend request to a user
  *     tags: [Friends]
@@ -27,11 +27,11 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized
  */
-router.post("/:id/friend-request", authenticate, friendsController.sendFriendRequest);
+router.post("/requests/:id", authenticate, friendsController.sendFriendRequest);
 
 /**
  * @swagger
- * /api/friend-requests:
+ * /api/users/friends/requests:
  *   get:
  *     summary: Get pending friend requests for the current user
  *     tags: [Friends]
@@ -43,11 +43,11 @@ router.post("/:id/friend-request", authenticate, friendsController.sendFriendReq
  *       401:
  *         description: Unauthorized
  */
-router.get("/friend-requests", authenticate, friendsController.getFriendRequests);
+router.get("/requests", authenticate, friendsController.getFriendRequests);
 
 /**
  * @swagger
- * /api/friend-requests/{requestId}/accept:
+ * /api/users/friends/requests/{requestId}/accept:
  *   post:
  *     summary: Accept a friend request
  *     tags: [Friends]
@@ -70,11 +70,11 @@ router.get("/friend-requests", authenticate, friendsController.getFriendRequests
  *       404:
  *         description: Not found
  */
-router.post("/friend-requests/:requestId/accept", authenticate, friendsController.acceptFriendRequest);
+router.post("/requests/:requestId/accept", authenticate, friendsController.acceptFriendRequest);
 
 /**
  * @swagger
- * /api/friend-requests/{requestId}/decline:
+ * /api/users/friends/requests/{requestId}/decline:
  *   post:
  *     summary: Decline a friend request
  *     tags: [Friends]
@@ -97,11 +97,11 @@ router.post("/friend-requests/:requestId/accept", authenticate, friendsControlle
  *       404:
  *         description: Not found
  */
-router.post("/friend-requests/:requestId/decline", authenticate, friendsController.declineFriendRequest);
+router.post("/requests/:requestId/decline", authenticate, friendsController.declineFriendRequest);
 
 /**
  * @swagger
- * /api/users/me/friends:
+ * /api/users/friends:
  *   get:
  *     summary: Get the current user's friends list
  *     tags: [Friends]
@@ -113,6 +113,6 @@ router.post("/friend-requests/:requestId/decline", authenticate, friendsControll
  *       401:
  *         description: Unauthorized
  */
-router.get("/me/friends", authenticate, friendsController.getFriends);
+router.get("/", authenticate, friendsController.getFriends);
 
 export default router;
