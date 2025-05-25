@@ -9,6 +9,7 @@ import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
+import friendsRoutes from "./modules/users/friendsRoutes";
 import ingredientRoutes from "./modules/ingredients/ingredientRoutes";
 import recognitionRoutes from "./modules/ingredients/recognitionRoutes";
 import recipeRoutes from "./modules/recipes/recipeRoutes";
@@ -54,6 +55,7 @@ app.use((req, res, next) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/users/friends", friendsRoutes);
 app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/ingredients/recognition", recognitionRoutes);
 app.use("/api/fridge", fridgeRoutes);
@@ -76,12 +78,26 @@ const options = {
       version: "1.0.0",
       description: "API server for the SnapChef application",
     },
+    tags: [
+      { name: "Auth" },
+      { name: "Users" },
+      { name: "Friends" },
+      { name: "Ingredients" },
+      { name: "Ingredient Recognition" },
+      { name: "Fridge" },
+      { name: "Groceries" },
+      { name: "Recipes" },
+      { name: "Cookbook" },
+      { name: "Notifications" },
+      { name: "Analytics" }
+    ],
     servers: [{ url: "http://localhost:" + process.env.PORT, },
     ],
   },
   apis: [
     "./src/modules/**/authRoutes.ts",
     "./src/modules/**/userRoutes.ts",
+    "./src/modules/**/friendsRoutes.ts",
     "./src/modules/**/ingredientRoutes.ts",
     "./src/modules/**/recognitionRoutes.ts",
     "./src/modules/**/fridgeRoutes.ts",
