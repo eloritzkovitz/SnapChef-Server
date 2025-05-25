@@ -38,7 +38,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /auth/google:
+ * /api/auth/google:
  *   post:
  *     summary: Google sign-in
  *     tags: [Auth]
@@ -78,7 +78,7 @@ router.post("/google", authController.googleSignIn);
 
 /**
  * @swagger
- * /auth/register:
+ * /api/auth/register:
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
@@ -104,7 +104,7 @@ router.post("/register", authController.register);
 
 /**
  * @swagger
- * /auth/login:
+ * /api/auth/login:
  *   post:
  *     summary: Log in a user
  *     tags: [Auth]
@@ -140,7 +140,7 @@ router.post("/login", authController.login);
 
 /**
  * @swagger
- * /auth/refresh:
+ * /api/auth/refresh:
  *   post:
  *     summary: Refresh tokens
  *     tags: [Auth]
@@ -177,7 +177,7 @@ router.post("/refresh", authController.refresh);
 
 /**
  * @swagger
- * /auth/logout:
+ * /api/auth/logout:
  *   post:
  *     summary: Log out a user
  *     tags: [Auth]
