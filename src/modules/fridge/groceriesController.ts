@@ -111,6 +111,60 @@ const updateGroceryItem = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+// Reorder groceries
+const reorderGroceries = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fridgeId } = req.params;
+    const { orderedItemIds } = req.body;
+    const userId = getUserId(req);
+
+    if (!Array.isArray(orderedItemIds) || orderedItemIds.length === 0) {
+      res.status(400).json({ message: "orderedItemIds must be a non-empty array" });
+      return;
+    }
+
+    const fridge = await fridgeModel.findById(fridgeId);
+    if (!fridge) {
+      logger.warn("Fridge not found when reordering groceries: %s (user: %s)", fridgeId, userId);
+      res.status(404).json({ message: "Fridge not found" });
+      return;
+    }
+
+    // Create a map for quick lookup
+    const itemMap: { [id: string]: any } = {};
+    for (const item of fridge.groceries) {
+      itemMap[item.id] = item;
+    }
+
+    // Build the new ordered array
+    const newOrderedItems = [];
+    for (const id of orderedItemIds) {
+      if (itemMap[id]) {
+        newOrderedItems.push(itemMap[id]);
+      }
+    }
+
+    // Replace the groceries array
+    fridge.groceries = newOrderedItems;
+    await fridge.save();
+
+    logger.info(
+      "Groceries reordered for fridge %s (user: %s): %j",
+      fridgeId,
+      userId,
+      orderedItemIds
+    );
+    res.status(200).json({ message: "Groceries reordered", groceries: fridge.groceries });
+  } catch (error) {
+    logger.error(
+      "Error reordering groceries for user %s: %o",
+      getUserId(req),
+      error
+    );
+    res.status(500).json({ message: "Failed to reorder groceries", error });
+  }
+};
+
 // Delete an item from the groceries list
 const deleteGroceryItem = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -151,5 +205,6 @@ export default {
   getGroceriesList,
   addGroceryItem,
   updateGroceryItem,
+  reorderGroceries,
   deleteGroceryItem
 };
