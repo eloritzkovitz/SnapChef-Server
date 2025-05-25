@@ -72,7 +72,7 @@ const getFriendRequests = async (req: Request, res: Response): Promise<void> => 
     const requests = await FriendRequest.find({
       to: userId,
       status: "pending",
-    }).populate("from", "username email");
+    }).populate("from", "firstName lastName email profilePicture")
     res.json({ requests });
   } catch (error) {
     logger.error("Error fetching friend requests: %o", error);
@@ -188,7 +188,7 @@ const getFriends = async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
     const user = await userModel
       .findById(userId)
-      .populate("friends", "username email");
+      .populate("from", "firstName lastName email profilePicture")
     res.json({ friends: user?.friends || [] });
   } catch (error) {
     logger.error("Error fetching friends: %o", error);
