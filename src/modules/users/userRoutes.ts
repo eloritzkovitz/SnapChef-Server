@@ -241,6 +241,38 @@ router.put("/me/preferences", authenticate, usersController.updatePreferences);
 
 /**
  * @swagger
+ * /api/users/me/fcm-token:
+ *   put:
+ *     summary: Update the FCM token for the current user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fcmToken:
+ *                 type: string
+ *                 example: "your-fcm-token"
+ *     responses:
+ *       200:
+ *         description: FCM token updated successfully
+ *       400:
+ *         description: FCM token is required
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error updating FCM token
+ */
+router.put("/me/fcm-token", authenticate, usersController.updateFcmToken);
+
+/**
+ * @swagger
  * /api/users/me:
  *   delete:
  *     summary: Delete current user
@@ -260,39 +292,6 @@ router.put("/me/preferences", authenticate, usersController.updatePreferences);
  *         description: Server error
  */
 router.delete("/me", authenticate, usersController.deleteUser);
-
-/**
- * @swagger
- * /api/users/{id}:
- *   get:
- *     summary: Get another user's public profile
- *     description: Retrieve public profile information for another user by their ID.
- *     tags:
- *       - Users
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The user ID
- *     responses:
- *       200:
- *         description: The user's public profile
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: User not found
- *       500:
- *         description: Server error
- */
-router.get("/:id", authenticate, usersController.getUserProfile);
 
 /**
  * @swagger
@@ -339,5 +338,38 @@ router.get("/:id", authenticate, usersController.getUserProfile);
  *         description: Server error
  */
 router.get("/", authenticate, usersController.findUsersByName);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get another user's public profile
+ *     description: Retrieve public profile information for another user by their ID.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: The user's public profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/:id", authenticate, usersController.getUserProfile);
 
 export default router;
