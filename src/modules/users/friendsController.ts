@@ -188,7 +188,7 @@ const getFriends = async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
     const user = await userModel
       .findById(userId)
-      .populate("from", "firstName lastName email profilePicture")
+      .populate("friends", "firstName lastName email profilePicture")
     res.json({ friends: user?.friends || [] });
   } catch (error) {
     logger.error("Error fetching friends: %o", error);

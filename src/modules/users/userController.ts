@@ -18,7 +18,11 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
     // Use the requested ID if available, otherwise fallback to the authenticated user
     const userId = requestedUserId || authenticatedUserId;
 
-    const user = await userModel.findById(userId).select("-password");
+    const user = await userModel
+      .findById(userId)
+      .select("-password")
+      .populate("friends", "firstName lastName email profilePicture");
+
     if (!user) {
       logger.warn("User not found: %s", userId);
       res.status(404).json({ message: "User not found" });
