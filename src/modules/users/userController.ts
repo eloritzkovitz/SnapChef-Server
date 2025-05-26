@@ -18,7 +18,11 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
     // Use the requested ID if available, otherwise fallback to the authenticated user
     const userId = requestedUserId || authenticatedUserId;
 
-    const user = await userModel.findById(userId).select("-password");
+    const user = await userModel
+      .findById(userId)
+      .select("-password")
+      .populate("friends", "firstName lastName email profilePicture");
+
     if (!user) {
       logger.warn("User not found: %s", userId);
       res.status(404).json({ message: "User not found" });
@@ -147,6 +151,33 @@ const updatePreferences = async (
   }
 };
 
+// Update FCM token
+const updateFcmToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const { fcmToken } = req.body;
+
+    if (!fcmToken) {
+      res.status(400).json({ message: "FCM token is required" });
+      return;
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    user.fcmToken = fcmToken;
+    await user.save();
+
+    res.status(200).json({ message: "FCM token updated successfully" });
+  } catch (error) {
+    logger.error("Error updating FCM token for user %s: %o", getUserId(req), error);
+    res.status(500).json({ message: "Error updating FCM token", error });
+  }
+};
+
 // Delete user data
 const deleteUser = async (
   req: Request<{ id: string }>,
@@ -188,24 +219,6 @@ const deleteUser = async (
   }
 };
 
-// Get another user's public profile
-const getUserProfile = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = req.params.id;
-    const user = await userModel.findById(userId).select("_id firstName lastName profilePicture bio headline location website");
-    if (!user) {
-      logger.warn("Public profile not found for user: %s", userId);
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-    logger.info("Public profile fetched for user: %s", userId);
-    res.json(user);
-  } catch (error) {
-    logger.error("Error fetching public profile for user %s: %o", req.params.id, error);
-    res.status(500).json({ message: "Error fetching user profile", error });
-  }
-};
-
 // Find users by name
 const findUsersByName = async (req: Request, res: Response): Promise<void> => {
   const query = req.query.query as string;
@@ -232,11 +245,37 @@ const findUsersByName = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Get another user's public profile
+const getUserProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params.id;
+
+    // Prevent reserved words from being treated as IDs
+    if (["friends", "me", "preferences", "fcm-token"].includes(userId)) {
+      res.status(404).json({ message: "Not found" });
+      return;
+    }
+
+    const user = await userModel.findById(userId).select("_id firstName lastName profilePicture bio headline location website");
+    if (!user) {
+      logger.warn("Public profile not found for user: %s", userId);
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    logger.info("Public profile fetched for user: %s", userId);
+    res.json(user);
+  } catch (error) {
+    logger.error("Error fetching public profile for user %s: %o", req.params.id, error);
+    res.status(500).json({ message: "Error fetching user profile", error });
+  }
+};
+
 export default {  
   getUserData,  
   updateUser,
   updatePreferences,
+  updateFcmToken,
   deleteUser,
-  getUserProfile,
-  findUsersByName,  
+  findUsersByName,
+  getUserProfile,    
 };
