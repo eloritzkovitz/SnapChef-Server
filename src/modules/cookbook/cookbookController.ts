@@ -364,30 +364,62 @@ const reorderRecipes = async (req: Request, res: Response): Promise<void> => {
 // Share a recipe with a friend
 const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void> => {
   try {
+    const { cookbookId, recipeId } = req.params;
+    const { friendId } = req.body;
     const userId = getUserId(req);
-    const { friendId, cookbookId, recipeId } = req.body;
 
-    // Validate input
-    if (!friendId || !cookbookId || !recipeId) {
-      res.status(400).json({ message: "friendId, cookbookId, and recipeId are required." });
+    // Validate required fields
+    if (!friendId) {
+      logger.warn(
+        "Attempted to share recipe without friendId: %s (user: %s)",
+        recipeId,
+        userId
+      );
+      res.status(400).json({ message: "friendId is required." });
       return;
     }
 
-    // Check friendship
+    // Fetch user and validate friendship
     const user = await userModel.findById(userId);
-    if (!user || !user.friends.map((f: any) => f.toString()).includes(friendId)) {
+    if (!user) {
+      logger.warn(
+        "User not found when sharing recipe: %s (user: %s)",
+        recipeId,
+        userId
+      );
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+    if (!user.friends.map((f: any) => f.toString()).includes(friendId)) {
+      logger.warn(
+        "User %s tried to share recipe %s with non-friend %s",
+        userId,
+        recipeId,
+        friendId
+      );
       res.status(403).json({ message: "You can only share recipes with friends." });
       return;
     }
 
-    // Find the recipe
+    // Fetch cookbook and recipe
     const cookbook = await cookbookModel.findById(cookbookId);
     if (!cookbook) {
+      logger.warn(
+        "Cookbook not found when sharing recipe: %s (user: %s)",
+        cookbookId,
+        userId
+      );
       res.status(404).json({ message: "Cookbook not found." });
       return;
     }
     const recipe = cookbook.recipes.find((r: any) => r._id.toString() === recipeId);
     if (!recipe) {
+      logger.warn(
+        "Recipe not found in cookbook %s for sharing: %s (user: %s)",
+        cookbookId,
+        recipeId,
+        userId
+      );
       res.status(404).json({ message: "Recipe not found." });
       return;
     }
@@ -418,9 +450,22 @@ const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void>
       });
     }
 
+    logger.info(
+      "Recipe %s from cookbook %s shared with friend %s (user: %s)",
+      recipeId,
+      cookbookId,
+      friendId,
+      userId
+    );
     res.status(200).json({ message: "Recipe shared with friend." });
   } catch (error) {
-    logger.error("Error sharing recipe with friend: %o", error);
+    logger.error(
+      "Error sharing recipe %s from cookbook %s (user: %s): %o",
+      req.params.recipeId,
+      req.params.cookbookId,
+      getUserId(req),
+      error
+    );
     res.status(500).json({ message: "Failed to share recipe." });
   }
 };
