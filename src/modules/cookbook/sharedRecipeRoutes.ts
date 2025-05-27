@@ -6,6 +6,13 @@ const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: Shared Recipes
+ *   description: API for managing shared recipes
+ */
+
+/**
+ * @swagger
  * /api/cookbook/{cookbookId}/shared:
  *   get:
  *     summary: Get recipes shared with the authenticated
