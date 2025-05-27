@@ -7,23 +7,17 @@ import logger from "../../utils/logger";
 const getSharedRecipes = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = getUserId(req);
-    const { cookbookId } = req.params;
-    const sharedRecipes = await SharedRecipe.find({
-      toUser: userId,
-      "recipe.originalCookbookId": cookbookId,
-    });
+    const sharedRecipes = await SharedRecipe.find({ toUser: userId });
     logger.info(
-      "Fetched %d shared recipes for user: %s and cookbook: %s",
+      "Fetched %d shared recipes for user: %s",
       sharedRecipes.length,
-      userId,
-      cookbookId
+      userId
     );
     res.status(200).json({ sharedRecipes });
   } catch (error) {
     logger.error(
-      "Error fetching shared recipes for user %s and cookbook %s: %o",
+      "Error fetching shared recipes for user %s: %o",
       getUserId(req),
-      req.params.cookbookId,
       error
     );
     res.status(500).json({ message: "Failed to fetch shared recipes" });
