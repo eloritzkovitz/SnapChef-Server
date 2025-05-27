@@ -70,9 +70,12 @@ const getFriendRequests = async (req: Request, res: Response): Promise<void> => 
   try {
     const userId = getUserId(req);
     const requests = await FriendRequest.find({
-      to: userId,
-      status: "pending",
-    }).populate("from", "firstName lastName email profilePicture")
+      $or: [
+        { to: userId },
+        { from: userId }
+      ]
+    })
+    .populate("from", "firstName lastName email profilePicture");
     res.json({ requests });
   } catch (error) {
     logger.error("Error fetching friend requests: %o", error);
