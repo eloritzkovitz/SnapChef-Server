@@ -3,17 +3,18 @@ import SharedRecipe from "./SharedRecipe";
 import { getUserId } from "../../utils/requestHelpers";
 import logger from "../../utils/logger";
 
-// Get shared recipes for a specific cookbook
+// Get recipes shared with and by the user
 const getSharedRecipes = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = getUserId(req);
-    const sharedRecipes = await SharedRecipe.find({ toUser: userId });
-    logger.info(
-      "Fetched %d shared recipes for user: %s",
-      sharedRecipes.length,
-      userId
-    );
-    res.status(200).json({ sharedRecipes });
+    const [sharedWithMe, sharedByMe] = await Promise.all([
+      SharedRecipe.find({ toUser: userId }),
+      SharedRecipe.find({ fromUser: userId }),
+    ]);
+    res.status(200).json({
+      sharedWithMe,
+      sharedByMe,
+    });
   } catch (error) {
     logger.error(
       "Error fetching shared recipes for user %s: %o",
