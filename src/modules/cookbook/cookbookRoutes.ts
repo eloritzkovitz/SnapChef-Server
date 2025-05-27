@@ -13,6 +13,43 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/cookbook/{cookbookId}:
+ *   get:
+ *     summary: Get a cookbook with all recipes
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cookbookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the cookbook
+ *     responses:
+ *       200:
+ *         description: The cookbook with all recipes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cookbook:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     ownerId:
+ *                       type: string
+ *                     recipes:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Recipe'
+ */
+router.get("/:cookbookId", authenticate, cookbookController.getCookbookContent);
+
+/**
+ * @swagger
  * /api/cookbook/{cookbookId}/recipes:
  *   post:
  *     summary: Add a recipe to the cookbook
@@ -187,6 +224,51 @@ router.patch("/:cookbookId/recipes/reorder", authenticate, cookbookController.re
 
 /**
  * @swagger
+ * /api/cookbook/{cookbookId}/recipes/{recipeId}/share:
+ *   post:
+ *     summary: Share a recipe with a friend
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cookbookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the cookbook containing the recipe
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the recipe to share
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               friendId:
+ *                 type: string
+ *                 description: The ID of the friend to share with
+ *     responses:
+ *       200:
+ *         description: Recipe shared with friend
+ *       400:
+ *         description: Bad request
+ *       403:
+ *         description: Not friends
+ *       404:
+ *         description: Not found
+ *       500:
+ *         description: Failed to share recipe
+ */
+router.post("/:cookbookId/recipes/:recipeId/share", authenticate, cookbookController.shareRecipeWithFriend);
+
+/**
+ * @swagger
  * /api/cookbook/{cookbookId}/recipes/{recipeId}:
  *   delete:
  *     summary: Remove a recipe from the cookbook
@@ -211,42 +293,5 @@ router.patch("/:cookbookId/recipes/reorder", authenticate, cookbookController.re
  *         description: Recipe removed from the cookbook
  */
 router.delete("/:cookbookId/recipes/:recipeId", authenticate, cookbookController.removeRecipe);
-
-/**
- * @swagger
- * /api/cookbook/{cookbookId}:
- *   get:
- *     summary: Get a cookbook with all recipes
- *     tags: [Cookbook]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: cookbookId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the cookbook
- *     responses:
- *       200:
- *         description: The cookbook with all recipes
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 cookbook:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     ownerId:
- *                       type: string
- *                     recipes:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Recipe'
- */
-router.get("/:cookbookId", authenticate, cookbookController.getCookbookContent);
 
 export default router;

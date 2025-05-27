@@ -5,6 +5,38 @@ import logger from "../../utils/logger";
 import { messaging } from "../../utils/firebaseMessaging";
 import { getUserId } from "../../utils/requestHelpers";
 
+// Get friends list for current user
+const getFriends = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const user = await userModel
+      .findById(userId)
+      .populate("friends", "firstName lastName email profilePicture")
+    res.json({ friends: user?.friends || [] });
+  } catch (error) {
+    logger.error("Error fetching friends: %o", error);
+    res.status(500).json({ message: "Failed to fetch friends." });
+  }
+};
+
+// Get pending friend requests for current user
+const getFriendRequests = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const requests = await FriendRequest.find({
+      $or: [
+        { to: userId },
+        { from: userId }
+      ]
+    })
+    .populate("from", "firstName lastName email profilePicture");
+    res.json({ requests });
+  } catch (error) {
+    logger.error("Error fetching friend requests: %o", error);
+    res.status(500).json({ message: "Failed to fetch friend requests." });
+  }
+};
+
 // Send a friend request
 const sendFriendRequest = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -62,21 +94,6 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
   } catch (error) {
     logger.error("Error sending friend request: %o", error);
     res.status(500).json({ message: "Failed to send friend request." });
-  }
-};
-
-// Get pending friend requests for current user
-const getFriendRequests = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = getUserId(req);
-    const requests = await FriendRequest.find({
-      to: userId,
-      status: "pending",
-    }).populate("from", "firstName lastName email profilePicture")
-    res.json({ requests });
-  } catch (error) {
-    logger.error("Error fetching friend requests: %o", error);
-    res.status(500).json({ message: "Failed to fetch friend requests." });
   }
 };
 
@@ -182,24 +199,37 @@ const declineFriendRequest = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Get friends list for current user
-const getFriends = async (req: Request, res: Response): Promise<void> => {
+// Remove a friend
+const removeFriend = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = getUserId(req);
-    const user = await userModel
-      .findById(userId)
-      .populate("friends", "firstName lastName email profilePicture")
-    res.json({ friends: user?.friends || [] });
+    const { friendId } = req.params;
+
+    if (!friendId) {
+      res.status(400).json({ message: "Friend ID is required." });
+      return;
+    }
+
+    // Remove each user from the other's friends list
+    await userModel.findByIdAndUpdate(userId, {
+      $pull: { friends: friendId },
+    });
+    await userModel.findByIdAndUpdate(friendId, {
+      $pull: { friends: userId },
+    });
+
+    res.status(200).json({ message: "Friend removed successfully." });
   } catch (error) {
-    logger.error("Error fetching friends: %o", error);
-    res.status(500).json({ message: "Failed to fetch friends." });
+    logger.error("Error removing friend: %o", error);
+    res.status(500).json({ message: "Failed to remove friend." });
   }
 };
 
 export default {
-  sendFriendRequest,
+  getFriends,
   getFriendRequests,
+  sendFriendRequest,  
   acceptFriendRequest,
   declineFriendRequest,
-  getFriends,
+  removeFriend,  
 };

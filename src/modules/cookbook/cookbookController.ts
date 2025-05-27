@@ -2,10 +2,13 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import cookbookModel from "./Cookbook";
 import { getField } from "./cookbookUtils";
+import { generateImageForRecipe } from "../recipes/imageGeneration";
 import { parseRecipeString } from "../recipes/recipeParser";
+import SharedRecipe from "./SharedRecipe";
+import userModel from "../users/User";
+import { messaging } from "../../utils/firebaseMessaging";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
-import { generateImageForRecipe } from "../recipes/imageGeneration";
 
 // Get a cookbook with all recipes
 const getCookbookContent = async (
@@ -358,6 +361,116 @@ const reorderRecipes = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Share a recipe with a friend
+const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { cookbookId, recipeId } = req.params;
+    const { friendId } = req.body;
+    const userId = getUserId(req);
+
+    // Validate required fields
+    if (!friendId) {
+      logger.warn(
+        "Attempted to share recipe without friendId: %s (user: %s)",
+        recipeId,
+        userId
+      );
+      res.status(400).json({ message: "friendId is required." });
+      return;
+    }
+
+    // Fetch user and validate friendship
+    const user = await userModel.findById(userId);
+    if (!user) {
+      logger.warn(
+        "User not found when sharing recipe: %s (user: %s)",
+        recipeId,
+        userId
+      );
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+    if (!user.friends.map((f: any) => f.toString()).includes(friendId)) {
+      logger.warn(
+        "User %s tried to share recipe %s with non-friend %s",
+        userId,
+        recipeId,
+        friendId
+      );
+      res.status(403).json({ message: "You can only share recipes with friends." });
+      return;
+    }
+
+    // Fetch cookbook and recipe
+    const cookbook = await cookbookModel.findById(cookbookId);
+    if (!cookbook) {
+      logger.warn(
+        "Cookbook not found when sharing recipe: %s (user: %s)",
+        cookbookId,
+        userId
+      );
+      res.status(404).json({ message: "Cookbook not found." });
+      return;
+    }
+    const recipe = cookbook.recipes.find((r: any) => r._id.toString() === recipeId);
+    if (!recipe) {
+      logger.warn(
+        "Recipe not found in cookbook %s for sharing: %s (user: %s)",
+        cookbookId,
+        recipeId,
+        userId
+      );
+      res.status(404).json({ message: "Recipe not found." });
+      return;
+    }
+
+    // Store the shared recipe in the SharedRecipe collection
+    await SharedRecipe.create({
+      recipe: recipe,
+      fromUser: userId,
+      toUser: friendId,
+      sharedAt: new Date(),
+      status: "pending"
+    });
+
+    // Send notification to friend with the recipe data
+    const friend = await userModel.findById(friendId);
+    if (friend?.fcmToken) {
+      await messaging.send({
+        token: friend.fcmToken,
+        notification: {
+          title: "Check out this recipe!",
+          body: `${user.firstName} shared a recipe: ${recipe.title}. Check it out!`,
+        },
+        data: {
+          type: "RECIPE_SHARED",
+          recipeId: recipe._id.toString(),
+          title: recipe.title,
+          fromUserId: userId ? userId.toString() : "",
+        },
+      });
+    }
+
+    logger.info(
+      "Recipe %s from cookbook %s shared with friend %s (user: %s)",
+      recipeId,
+      cookbookId,
+      friendId,
+      userId
+    );
+    res.status(200).json({ message: "Recipe shared with friend." });
+  } catch (error) {
+    logger.error(
+      "Error sharing recipe %s from cookbook %s (user: %s): %o",
+      req.params.recipeId,
+      req.params.cookbookId,
+      getUserId(req),
+      error
+    );
+    res.status(500).json({ message: "Failed to share recipe." });
+  }
+};
+
 // Remove a recipe from a cookbook
 const removeRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -409,10 +522,11 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
 };
 
 export default {
-  getCookbookContent,
+  getCookbookContent,  
   addRecipe,
   updateRecipe,
   regenerateRecipeImage,
   reorderRecipes,
+  shareRecipeWithFriend,
   removeRecipe,
 };
