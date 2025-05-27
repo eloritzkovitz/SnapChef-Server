@@ -2,10 +2,13 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import cookbookModel from "./Cookbook";
 import { getField } from "./cookbookUtils";
+import { generateImageForRecipe } from "../recipes/imageGeneration";
 import { parseRecipeString } from "../recipes/recipeParser";
+import SharedRecipe from "../recipes/SharedRecipe";
+import userModel from "../users/User";
+import { messaging } from "../../utils/firebaseMessaging";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
-import { generateImageForRecipe } from "../recipes/imageGeneration";
 
 // Get a cookbook with all recipes
 const getCookbookContent = async (
@@ -358,6 +361,70 @@ const reorderRecipes = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Share a recipe with a friend
+const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const { friendId, cookbookId, recipeId } = req.body;
+
+    // Validate input
+    if (!friendId || !cookbookId || !recipeId) {
+      res.status(400).json({ message: "friendId, cookbookId, and recipeId are required." });
+      return;
+    }
+
+    // Check friendship
+    const user = await userModel.findById(userId);
+    if (!user || !user.friends.map((f: any) => f.toString()).includes(friendId)) {
+      res.status(403).json({ message: "You can only share recipes with friends." });
+      return;
+    }
+
+    // Find the recipe
+    const cookbook = await cookbookModel.findById(cookbookId);
+    if (!cookbook) {
+      res.status(404).json({ message: "Cookbook not found." });
+      return;
+    }
+    const recipe = cookbook.recipes.find((r: any) => r._id.toString() === recipeId);
+    if (!recipe) {
+      res.status(404).json({ message: "Recipe not found." });
+      return;
+    }
+
+    // Store the shared recipe in the SharedRecipe collection
+    await SharedRecipe.create({
+      recipe: recipe,
+      fromUser: userId,
+      toUser: friendId,
+      sharedAt: new Date(),
+      status: "pending"
+    });
+
+    // Send notification to friend with the recipe data
+    const friend = await userModel.findById(friendId);
+    if (friend?.fcmToken) {
+      await messaging.send({
+        token: friend.fcmToken,
+        notification: {
+          title: "Check out this recipe!",
+          body: `${user.firstName} shared a recipe: ${recipe.title}. Check it out!`,
+        },
+        data: {
+          type: "RECIPE_SHARED",
+          sharedRecipe: JSON.stringify(recipe),
+          fromUserId: userId ? userId.toString() : "",
+        },
+      });
+    }
+
+    res.status(200).json({ message: "Recipe shared with friend." });
+  } catch (error) {
+    logger.error("Error sharing recipe with friend: %o", error);
+    res.status(500).json({ message: "Failed to share recipe." });
+  }
+};
+
 // Remove a recipe from a cookbook
 const removeRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -414,5 +481,6 @@ export default {
   updateRecipe,
   regenerateRecipeImage,
   reorderRecipes,
+  shareRecipeWithFriend,
   removeRecipe,
 };
