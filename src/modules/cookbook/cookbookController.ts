@@ -51,6 +51,33 @@ const getCookbookContent = async (
   }
 };
 
+// Get recipes shared with the authenticated user
+const getSharedRecipesForUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+
+    // Fetch all shared recipes where the current user is the recipient
+    const sharedRecipes = await SharedRecipe.find({ toUser: userId });
+
+    logger.info(
+      "Fetched %d shared recipes for user: %s",
+      sharedRecipes.length,
+      userId
+    );
+    res.status(200).json({ sharedRecipes });
+  } catch (error) {
+    logger.error(
+      "Error fetching shared recipes for user %s: %o",
+      getUserId(req),
+      error
+    );
+    res.status(500).json({
+      message: "Failed to fetch shared recipes",
+      error: (error as Error).message,
+    });
+  }
+};
+
 // Add a recipe to a cookbook
 const addRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -522,6 +549,7 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
 
 export default {
   getCookbookContent,
+  getSharedRecipesForUser,
   addRecipe,
   updateRecipe,
   regenerateRecipeImage,

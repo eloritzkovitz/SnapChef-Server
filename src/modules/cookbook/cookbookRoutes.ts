@@ -50,6 +50,28 @@ router.get("/:cookbookId", authenticate, cookbookController.getCookbookContent);
 
 /**
  * @swagger
+ * /api/cookbook/shared:
+ *   get:
+ *     summary: Get recipes shared with the authenticated user
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of recipes shared with the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/shared", authenticate, cookbookController.getSharedRecipesForUser);
+
+/**
+ * @swagger
  * /api/cookbook/{cookbookId}/recipes:
  *   post:
  *     summary: Add a recipe to the cookbook
