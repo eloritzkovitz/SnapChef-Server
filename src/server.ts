@@ -16,6 +16,7 @@ import recipeRoutes from "./modules/recipes/recipeRoutes";
 import fridgeRoutes from "./modules/fridge/fridgeRoutes";
 import groceriesRoutes from "./modules/fridge/groceriesRoutes";
 import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
+import sharedRecipeRoutes from "./modules/cookbook/sharedRecipeRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
 import { deleteExpiredReminders } from "./modules/notifications/notificationUtils";
@@ -62,6 +63,7 @@ app.use("/api/fridge", fridgeRoutes);
 app.use("/api/fridge/:fridgeId/groceries", groceriesRoutes);
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/cookbook",cookbookRoutes);
+app.use("/api/cookbook", sharedRecipeRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
@@ -88,6 +90,7 @@ const options = {
       { name: "Groceries" },
       { name: "Recipes" },
       { name: "Cookbook" },
+      { name: "Shared Recipes" },
       { name: "Notifications" },
       { name: "Analytics" }
     ],
@@ -104,6 +107,7 @@ const options = {
     "./src/modules/**/groceriesRoutes.ts",
     "./src/modules/**/recipeRoutes.ts",    
     "./src/modules/**/cookbookRoutes.ts",
+    "./src/modules/**/sharedRecipeRoutes.ts",
     "./src/modules/**/notificationRoutes.ts",    
     "./src/modules/**/analyticsRoutes.ts",
   ],
