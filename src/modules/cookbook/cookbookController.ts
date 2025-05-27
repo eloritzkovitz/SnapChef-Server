@@ -444,7 +444,8 @@ const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void>
         },
         data: {
           type: "RECIPE_SHARED",
-          sharedRecipe: JSON.stringify(recipe),
+          recipeId: recipe._id.toString(),
+          title: recipe.title,
           fromUserId: userId ? userId.toString() : "",
         },
       });
