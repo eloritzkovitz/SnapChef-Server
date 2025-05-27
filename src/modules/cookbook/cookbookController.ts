@@ -4,7 +4,7 @@ import cookbookModel from "./Cookbook";
 import { getField } from "./cookbookUtils";
 import { generateImageForRecipe } from "../recipes/imageGeneration";
 import { parseRecipeString } from "../recipes/recipeParser";
-import SharedRecipe from "../recipes/SharedRecipe";
+import SharedRecipe from "./SharedRecipe";
 import userModel from "../users/User";
 import { messaging } from "../../utils/firebaseMessaging";
 import logger from "../../utils/logger";
@@ -46,33 +46,6 @@ const getCookbookContent = async (
     );
     res.status(500).json({
       message: "Failed to fetch cookbook",
-      error: (error as Error).message,
-    });
-  }
-};
-
-// Get recipes shared with the authenticated user
-const getSharedRecipesForUser = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = getUserId(req);
-
-    // Fetch all shared recipes where the current user is the recipient
-    const sharedRecipes = await SharedRecipe.find({ toUser: userId });
-
-    logger.info(
-      "Fetched %d shared recipes for user: %s",
-      sharedRecipes.length,
-      userId
-    );
-    res.status(200).json({ sharedRecipes });
-  } catch (error) {
-    logger.error(
-      "Error fetching shared recipes for user %s: %o",
-      getUserId(req),
-      error
-    );
-    res.status(500).json({
-      message: "Failed to fetch shared recipes",
       error: (error as Error).message,
     });
   }
@@ -548,8 +521,7 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
 };
 
 export default {
-  getCookbookContent,
-  getSharedRecipesForUser,
+  getCookbookContent,  
   addRecipe,
   updateRecipe,
   regenerateRecipeImage,
