@@ -25,33 +25,6 @@ const getSharedRecipes = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Update the status of a shared recipe
-const updateSharedRecipeStatus = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = getUserId(req);
-    const { sharedRecipeId } = req.params;
-    const { status } = req.body;
-    const sharedRecipe = await SharedRecipe.findOneAndUpdate(
-      { _id: sharedRecipeId, toUser: userId },
-      { status },
-      { new: true }
-    );
-    if (!sharedRecipe) {
-      res.status(404).json({ message: "Shared recipe not found" });
-      return;
-    }
-    res.status(200).json({ message: "Shared recipe status updated", sharedRecipe });
-  } catch (error) {
-    logger.error(
-      "Error updating shared recipe %s for user %s: %o",
-      req.params.sharedRecipeId,
-      getUserId(req),
-      error
-    );
-    res.status(500).json({ message: "Failed to update shared recipe" });
-  }
-};
-
 // Delete a shared recipe
 const deleteSharedRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -79,7 +52,6 @@ const deleteSharedRecipe = async (req: Request, res: Response): Promise<void> =>
 };
 
 export default {
-  getSharedRecipes,
-  updateSharedRecipeStatus,
+  getSharedRecipes,  
   deleteSharedRecipe,
 };
