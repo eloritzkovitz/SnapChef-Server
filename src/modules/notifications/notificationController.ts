@@ -49,41 +49,54 @@ const getNotifications = async (req: Request, res: Response) => {
 
 // Create a notification and (optionally) send a push notification
 const createNotification = async (req: Request, res: Response): Promise<void> => {
-  try {    
-    const userId = getUserId(req);
-    if (!userId) {
+  try {
+    const senderId = getUserId(req);
+    if (!senderId) {
       logger.warn('Unauthorized notification creation attempt');
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
-    const { type, title, body, metadata, deviceToken, scheduledTime, ingredientName } = req.body;
+    // Accept userId in body for recipient (for sharing, etc.)
+    const {
+      userId: recipientId, // <-- recipient userId
+      type,
+      title,
+      body,
+      metadata,
+      deviceToken,
+      scheduledTime,
+      ingredientName,
+    } = req.body;
 
     if (!type || !title || !body) {
-      logger.warn('Missing required fields for notification creation (user: %s)', userId);
+      logger.warn('Missing required fields for notification creation (user: %s)', senderId);
       res.status(400).json({ message: 'Missing required fields.' });
       return;
     }
 
     // For ingredient reminders, require scheduledTime and ingredientName
     if ((type === 'expiry' || type === 'grocery') && (!scheduledTime || !ingredientName)) {
-      logger.warn('Missing scheduledTime or ingredientName for %s notification (user: %s)', type, userId);
+      logger.warn('Missing scheduledTime or ingredientName for %s notification (user: %s)', type, senderId);
       res.status(400).json({ message: 'scheduledTime and ingredientName are required for this notification type.' });
       return;
     }
 
+    // Use recipientId if provided, otherwise default to senderId
+    const notificationUserId = recipientId || senderId;    
+
     // Store the notification in the DB for local and history sync
     const notification = await Notification.create({
-      userId: userId,
+      userId: notificationUserId,
       type,
       title,
       body,
       metadata,
-      scheduledTime: scheduledTime,     
-      ingredientName: ingredientName,
+      scheduledTime,
+      ingredientName,
     });
 
-    logger.info('Notification created for user %s: %j', userId, notification);
+    logger.info('Notification created for user %s: %j', notificationUserId, notification);
 
     // Optionally send a push notification if deviceToken is provided
     if (deviceToken) {
