@@ -120,6 +120,7 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
       instructions: recipeData.instructions || [],
       imageURL: recipeData.imageURL || "",
       rating: recipeData.rating || 0.0,
+      isFavorite: false,
       source: recipeData.source || "ai",
       raw: recipeData.raw || parsed.raw || "",
     };
@@ -298,67 +299,25 @@ const regenerateRecipeImage = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Reorder recipes in a cookbook
-const reorderRecipes = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { cookbookId } = req.params;
-    const { orderedRecipeIds } = req.body;
-    const userId = getUserId(req);
+// Toggle favorite status of a recipe
+const toggleFavoriteRecipe = async (req: Request, res: Response): Promise<void> => {
+  const { cookbookId, recipeId } = req.params;
+  const userId = getUserId(req);
 
-    if (!Array.isArray(orderedRecipeIds) || orderedRecipeIds.length === 0) {
-      res.status(400).json({ message: "orderedRecipeIds must be a non-empty array" });
-      return;
-    }
-
-    const cookbook = await cookbookModel.findById(cookbookId);
-
-    if (!cookbook) {
-      logger.warn(
-        "Cookbook not found when reordering recipes: %s (user: %s)",
-        cookbookId,
-        userId
-      );
-      res.status(404).json({ message: "Cookbook not found" });
-      return;
-    }
-
-    // Create a map for quick lookup
-    const recipeMap: { [id: string]: any } = {};
-    for (const recipe of cookbook.recipes) {
-      recipeMap[recipe._id.toString()] = recipe;
-    }
-
-    // Build the new ordered array
-    const newOrderedRecipes = [];
-    for (const id of orderedRecipeIds) {
-      if (recipeMap[id]) {
-        newOrderedRecipes.push(recipeMap[id]);
-      }
-    }    
-
-    // Replace the recipes array
-    cookbook.recipes = newOrderedRecipes;
-    await cookbook.save();
-
-    logger.info(
-      "Recipes reordered in cookbook %s (user: %s): %j",
-      cookbookId,
-      userId,
-      orderedRecipeIds
-    );
-    res.status(200).json({ message: "Recipes reordered", cookbook });
-  } catch (error) {
-    logger.error(
-      "Error reordering recipes in cookbook %s (user: %s): %o",
-      req.params.cookbookId,
-      getUserId(req),
-      error
-    );
-    res.status(500).json({
-      message: "Failed to reorder recipes",
-      error: (error as Error).message,
-    });
+  const cookbook = await cookbookModel.findById(cookbookId);
+  if (!cookbook) {
+    res.status(404).json({ message: "Cookbook not found" });
+    return;
   }
+  const recipe = cookbook.recipes.find((r: any) => r._id.toString() === recipeId);
+  if (!recipe) {
+    res.status(404).json({ message: "Recipe not found" });
+    return;
+  }
+  recipe.isFavorite = !recipe.isFavorite;
+  cookbook.markModified("recipes");
+  await cookbook.save();
+  res.status(200).json({ message: "Recipe favorite status toggled", favorite: recipe.isFavorite });
 };
 
 // Share a recipe with a friend
@@ -471,6 +430,69 @@ const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void>
   }
 };
 
+// Reorder recipes in a cookbook
+const reorderRecipes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { cookbookId } = req.params;
+    const { orderedRecipeIds } = req.body;
+    const userId = getUserId(req);
+
+    if (!Array.isArray(orderedRecipeIds) || orderedRecipeIds.length === 0) {
+      res.status(400).json({ message: "orderedRecipeIds must be a non-empty array" });
+      return;
+    }
+
+    const cookbook = await cookbookModel.findById(cookbookId);
+
+    if (!cookbook) {
+      logger.warn(
+        "Cookbook not found when reordering recipes: %s (user: %s)",
+        cookbookId,
+        userId
+      );
+      res.status(404).json({ message: "Cookbook not found" });
+      return;
+    }
+
+    // Create a map for quick lookup
+    const recipeMap: { [id: string]: any } = {};
+    for (const recipe of cookbook.recipes) {
+      recipeMap[recipe._id.toString()] = recipe;
+    }
+
+    // Build the new ordered array
+    const newOrderedRecipes = [];
+    for (const id of orderedRecipeIds) {
+      if (recipeMap[id]) {
+        newOrderedRecipes.push(recipeMap[id]);
+      }
+    }    
+
+    // Replace the recipes array
+    cookbook.recipes = newOrderedRecipes;
+    await cookbook.save();
+
+    logger.info(
+      "Recipes reordered in cookbook %s (user: %s): %j",
+      cookbookId,
+      userId,
+      orderedRecipeIds
+    );
+    res.status(200).json({ message: "Recipes reordered", cookbook });
+  } catch (error) {
+    logger.error(
+      "Error reordering recipes in cookbook %s (user: %s): %o",
+      req.params.cookbookId,
+      getUserId(req),
+      error
+    );
+    res.status(500).json({
+      message: "Failed to reorder recipes",
+      error: (error as Error).message,
+    });
+  }
+};
+
 // Remove a recipe from a cookbook
 const removeRecipe = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -523,10 +545,11 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
 
 export default {
   getCookbookContent,  
-  addRecipe,
+  addRecipe,  
   updateRecipe,
   regenerateRecipeImage,
-  reorderRecipes,
+  toggleFavoriteRecipe,
   shareRecipeWithFriend,
+  reorderRecipes,  
   removeRecipe,
 };
