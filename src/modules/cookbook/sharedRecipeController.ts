@@ -57,12 +57,13 @@ const deleteSharedRecipe = async (req: Request, res: Response): Promise<void> =>
   try {
     const userId = getUserId(req);
     const { sharedRecipeId } = req.params;
+    // Allow deletion if the user is either the sender or the recipient
     const sharedRecipe = await SharedRecipe.findOneAndDelete({
       _id: sharedRecipeId,
-      toUser: userId,
+      $or: [{ toUser: userId }, { fromUser: userId }],
     });
     if (!sharedRecipe) {
-      res.status(404).json({ message: "Shared recipe not found" });
+      res.status(404).json({ message: "Shared recipe not found or not authorized" });
       return;
     }
     res.status(200).json({ message: "Shared recipe removed" });
