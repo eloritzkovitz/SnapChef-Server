@@ -15,7 +15,7 @@ const router = express.Router();
  * @swagger
  * /api/cookbook/{cookbookId}/shared:
  *   get:
- *     summary: Get recipes shared with the authenticated
+ *     summary: Get recipes shared with and by the authenticated user
  *     tags: [Shared Recipes]
  *     security:
  *       - bearerAuth: []
@@ -28,7 +28,7 @@ const router = express.Router();
  *         description: The ID of the cookbook
  *     responses:
  *       200:
- *         description: List of shared recipes for the user and cookbook
+ *         description: List of recipes shared with and by the user
  *         content:
  *           application/json:
  *             schema:
@@ -44,7 +44,7 @@ router.get("/:cookbookId/shared", authenticate, sharedRecipeController.getShared
  * @swagger
  * /api/cookbook/{cookbookId}/shared/{sharedRecipeId}:
  *   delete:
- *     summary: Remove a shared recipe from the user's shared list
+ *     summary: Remove a recipe shared with or by the authenticated user
  *     tags: [Shared Recipes]
  *     security:
  *       - bearerAuth: []
