@@ -38,11 +38,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../dist/uploads')));
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => {
-  console.log("Connected to Database");
-  // Schedule a cron job to delete expired reminders every minute
-  cron.schedule("* * * * *", async () => {
-  await deleteExpiredReminders();
-});
+  console.log("Connected to Database");  
 });
 
 app.use(bodyParser.json());
