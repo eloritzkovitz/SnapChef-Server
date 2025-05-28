@@ -315,6 +315,7 @@ const toggleFavoriteRecipe = async (req: Request, res: Response): Promise<void> 
     return;
   }
   recipe.isFavorite = !recipe.isFavorite;
+  cookbook.markModified("recipes");
   await cookbook.save();
   res.status(200).json({ message: "Recipe favorite status toggled", favorite: recipe.isFavorite });
 };
