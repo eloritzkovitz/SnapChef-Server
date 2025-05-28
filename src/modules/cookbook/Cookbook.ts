@@ -14,6 +14,7 @@ interface Recipe {
   instructions: string[];
   imageURL?: string;
   rating: number | null;
+  isFavorite: boolean;
   source: 'ai' | 'user' | 'shared';
 }
 

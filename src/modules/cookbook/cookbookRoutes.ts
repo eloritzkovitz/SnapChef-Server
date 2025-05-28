@@ -119,7 +119,7 @@ router.put("/:cookbookId/recipes/:recipeId", authenticate, cookbookController.up
 /**
  * @swagger
  * /api/cookbook/{cookbookId}/recipes/{recipeId}/image:
- *   post:
+ *   patch:
  *     summary: Generate or update an image for a recipe in the cookbook
  *     tags: [Cookbook]
  *     security:
@@ -168,7 +168,79 @@ router.put("/:cookbookId/recipes/:recipeId", authenticate, cookbookController.up
  *       500:
  *         description: Failed to generate image
  */
-router.post("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookController.regenerateRecipeImage);
+router.patch("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookController.regenerateRecipeImage);
+
+/**
+ * @swagger
+ * /api/cookbook/{cookbookId}/recipes/{recipeId}/favorite:
+ *   patch:
+ *     summary: Toggle favorite status of a recipe
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cookbookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the cookbook containing the recipe
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the recipe to toggle favorite status for
+ *     responses:
+ *       200:
+ *         description: Recipe favorite status toggled successfully
+ */
+router.patch("/:cookbookId/recipes/:recipeId/favorite", authenticate, cookbookController.toggleFavoriteRecipe);
+
+/**
+ * @swagger
+ * /api/cookbook/{cookbookId}/recipes/{recipeId}/share:
+ *   post:
+ *     summary: Share a recipe with a friend
+ *     tags: [Cookbook]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cookbookId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the cookbook containing the recipe
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the recipe to share
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               friendId:
+ *                 type: string
+ *                 description: The ID of the friend to share with
+ *     responses:
+ *       200:
+ *         description: Recipe shared with friend
+ *       400:
+ *         description: Bad request
+ *       403:
+ *         description: Not friends
+ *       404:
+ *         description: Not found
+ *       500:
+ *         description: Failed to share recipe
+ */
+router.post("/:cookbookId/recipes/:recipeId/share", authenticate, cookbookController.shareRecipeWithFriend);
 
 /**
  * @swagger
@@ -221,51 +293,6 @@ router.post("/:cookbookId/recipes/:recipeId/image", authenticate, cookbookContro
  *         description: Failed to reorder recipes
  */
 router.patch("/:cookbookId/recipes/reorder", authenticate, cookbookController.reorderRecipes);
-
-/**
- * @swagger
- * /api/cookbook/{cookbookId}/recipes/{recipeId}/share:
- *   post:
- *     summary: Share a recipe with a friend
- *     tags: [Cookbook]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: cookbookId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the cookbook containing the recipe
- *       - in: path
- *         name: recipeId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the recipe to share
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               friendId:
- *                 type: string
- *                 description: The ID of the friend to share with
- *     responses:
- *       200:
- *         description: Recipe shared with friend
- *       400:
- *         description: Bad request
- *       403:
- *         description: Not friends
- *       404:
- *         description: Not found
- *       500:
- *         description: Failed to share recipe
- */
-router.post("/:cookbookId/recipes/:recipeId/share", authenticate, cookbookController.shareRecipeWithFriend);
 
 /**
  * @swagger
