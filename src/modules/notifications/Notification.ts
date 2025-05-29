@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export type NotificationType = 'expiry' | 'grocery' | 'friend' | 'share' | 'update';
+export type NotificationType = 'expiry' | 'grocery' | 'notice' | 'friend' | 'share' | 'update';
 
 export interface INotification extends Document {
   recipientId: string;
@@ -17,7 +17,7 @@ export interface INotification extends Document {
 const NotificationSchema: Schema = new Schema({
   recipientId: { type: String, required: true },
   senderId: { type: String, required: true },
-  type: { type: String, enum: ['expiry', 'grocery', 'friend', 'share', 'update'], required: true },
+  type: { type: String, enum: ['expiry', 'grocery', 'notice', 'friend', 'share', 'update'], required: true },
   title: { type: String, required: true },
   body: { type: String, required: true },
   ingredientName: { type: String },
