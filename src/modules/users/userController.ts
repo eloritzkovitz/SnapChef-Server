@@ -270,6 +270,61 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Get user stats
+const getUserStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params.id || getUserId(req);
+
+    // Get user's fridge and cookbook
+    const user = await userModel.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const fridge = await fridgeModel.findById(user.fridgeId);
+    const cookbook = await cookbookModel.findById(user.cookbookId);
+
+    // Ingredient count (unique names)
+    const ingredientNames = fridge?.ingredients?.map((i: any) => i.name.toLowerCase()) || [];
+    const uniqueIngredients = Array.from(new Set(ingredientNames));
+    const ingredientCount = uniqueIngredients.length;
+
+    // Recipe count
+    const recipeCount = cookbook?.recipes?.length || 0;
+
+    // Most popular ingredients in recipes
+    const ingredientFrequency: Record<string, number> = {};
+    cookbook?.recipes?.forEach((recipe: any) => {
+      (recipe.ingredients || []).forEach((ing: any) => {
+        const name = ing.name.toLowerCase();
+        ingredientFrequency[name] = (ingredientFrequency[name] || 0) + 1;
+      });
+    });
+    const mostPopularIngredients = Object.entries(ingredientFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    // Favorite recipe count
+    const favoriteRecipeCount = cookbook?.recipes?.filter((r: any) => r.isFavorite)?.length || 0;
+
+    // Friend count
+    const friendCount = user.friends?.length || 0;
+
+    res.json({
+      ingredientCount,
+      recipeCount,
+      mostPopularIngredients,
+      favoriteRecipeCount,
+      friendCount,
+    });
+  } catch (error) {
+    logger.error("Error fetching user stats for user %s: %o", req.params.id, error);
+    res.status(500).json({ message: "Error fetching user stats", error });
+  }
+};
+
 export default {  
   getUserData,  
   updateUser,
@@ -277,5 +332,6 @@ export default {
   updateFcmToken,
   deleteUser,
   findUsersByName,
-  getUserProfile,    
+  getUserProfile,
+  getUserStats,     
 };
