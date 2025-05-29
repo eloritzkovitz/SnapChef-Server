@@ -1,16 +1,19 @@
 import { Request, Response } from "express";
 import admin from "firebase-admin";
 import Notification from "./Notification";
+import { io } from "../../server";
 import { getUserId } from "../../utils/requestHelpers";
 import logger from "../../utils/logger";
 
-// Helper to send a push notification using Firebase Cloud Messaging
+// Send a push notification using Firebase Cloud Messaging
 const sendPushNotification = async (
   token: string,
   title: string,
   body: string,
   type: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
+  recipientId?: string,
+  notification?: any
 ): Promise<void> => {
   try {
     const message = {
@@ -31,13 +34,17 @@ const sendPushNotification = async (
 
     await admin.messaging().send(message);
     logger.info(`Push notification sent to token: ${token}`);
+    // Emit real-time notification to the recipient's room if info is provided
+    if (recipientId && notification) {
+      io.to(recipientId).emit("notification", notification);
+    }
   } catch (error) {
     logger.error("Error sending push notification: %o", error);
     throw new Error("Failed to send push notification.");
   }
 };
 
-// Get notifications for a user
+// Get notifications for a user (only as receiver)
 const getNotifications = async (req: Request, res: Response) => {
   try {
     const userId = getUserId(req);
@@ -126,8 +133,8 @@ const createNotification = async (
 
     // Store the notification in the DB for both sender and recipient context
     const notification = await Notification.create({
-      recipientId, // recipient
-      senderId, // sender
+      recipientId, 
+      senderId, 
       type,
       title,
       body,
@@ -145,7 +152,10 @@ const createNotification = async (
 
     // Optionally send a push notification if deviceToken is provided
     if (deviceToken) {
-      await sendPushNotification(deviceToken, title, body, type, metadata);
+      await sendPushNotification(deviceToken, title, body, type, metadata, recipientId, notification);
+    } else {
+      // Always emit real-time notification
+      io.to(recipientId).emit("notification", notification);
     }
 
     res.status(201).json(notification);
@@ -185,7 +195,7 @@ const updateNotification = async (
 
     // Only allow update if user is sender or receiver
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, $or: [{ userId }, { senderId: userId }] },
+      { _id: id, $or: [{ recipientId: userId }, { senderId: userId }] },
       { type, title, body, metadata, scheduledTime, ingredientName },
       { new: true }
     );
@@ -223,7 +233,7 @@ const deleteNotification = async (
 
     const result = await Notification.findOneAndDelete({
       _id: id,
-      $or: [{ userId }, { senderId: userId }],
+      $or: [{ recipientId: userId }, { senderId: userId }],
     });
     if (!result) {
       logger.warn(
