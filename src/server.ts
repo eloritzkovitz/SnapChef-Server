@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import path from "path";
 import fs from "fs";
-import cron from "node-cron";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
@@ -19,7 +20,6 @@ import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import sharedRecipeRoutes from "./modules/cookbook/sharedRecipeRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
-import { deleteExpiredReminders } from "./modules/notifications/notificationUtils";
 
 const app = express();
 
@@ -41,6 +41,7 @@ db.once("open", () => {
   console.log("Connected to Database");  
 });
 
+// Middleware setup
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use((req, res, next) => {
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import and use the routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users/friends", friendsRoutes);
@@ -63,7 +65,7 @@ app.use("/api/cookbook", sharedRecipeRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-
+// Serve the API documentation
 app.get("/about", (req, res) => {
   res.send("This is the API for the SnapChef application.");
 });
@@ -111,6 +113,34 @@ const options = {
 const specs = swaggerJsDoc(options);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
+// --- Socket.IO Setup ---
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Socket.IO connection handler
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // Join a room for their userId
+  socket.on("join", (userId: string) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined their notification room`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+// Export io for use in controllers
+export { io };
+
+// --- App Initialization ---
 const initApp = () => {
   return new Promise<Express>(async (resolve, reject) => {
     if (process.env.DB_CONNECTION == undefined) {
