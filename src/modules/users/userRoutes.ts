@@ -372,4 +372,61 @@ router.get("/", authenticate, usersController.findUsersByName);
  */
 router.get("/:id", authenticate, usersController.getUserProfile);
 
+/**
+ * @swagger
+ * /api/users/{id}/stats:
+ *   get:
+ *     summary: Get user statistics
+ *     description: Retrieve statistics for a user, such as ingredient count, recipe count, most popular ingredients, favorite recipe count, and friend count.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *     responses:
+ *       200:
+ *         description: User statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ingredientCount:
+ *                   type: integer
+ *                   example: 12
+ *                 recipeCount:
+ *                   type: integer
+ *                   example: 8
+ *                 mostPopularIngredients:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         example: "tomato"
+ *                       count:
+ *                         type: integer
+ *                         example: 5
+ *                 favoriteRecipeCount:
+ *                   type: integer
+ *                   example: 3
+ *                 friendCount:
+ *                   type: integer
+ *                   example: 7
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/:id/stats", authenticate, usersController.getUserStats);
+
 export default router;
