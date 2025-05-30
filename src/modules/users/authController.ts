@@ -2,10 +2,9 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import userModel from "./User";
-import fridgeModel from "../fridge/Fridge";
-import cookbookModel from "../cookbook/Cookbook";
-import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
+import { createUserWithDefaults } from "./userUtils";
 import logger from "../../utils/logger";
+import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -27,16 +26,23 @@ const googleSignIn = async (req: Request, res: Response) => {
     const { sub, email, given_name, family_name, picture } = payload;
     let user = await userModel.findOne({ email });
 
+    // Validate required fields
+    if (!email || !given_name || !family_name) {
+      logger.error("Missing required Google profile fields: %o", payload);
+      res
+        .status(400)
+        .send("Google account missing required profile information.");
+      return;
+    }
+
     if (!user) {
       logger.info("Creating new user from Google sign-in: %s", email);
-      // Create a new user if one does not exist
-      user = await userModel.create({
-        firstName: given_name,
-        lastName: family_name,
-        email,
+      user = await createUserWithDefaults({
+        firstName: given_name || "",
+        lastName: family_name || "",
+        email: email || "",
         password: sub, // Use Google sub as a placeholder password
         profilePicture: picture,
-        joinDate: new Date().toISOString(),
       });
     } else {
       logger.info("Existing user signed in with Google: %s", email);
@@ -54,7 +60,6 @@ const googleSignIn = async (req: Request, res: Response) => {
     await user.save();
 
     logger.info("Google sign-in successful for user: %s", email);
-    // Send back the tokens to the client
     res.status(200).send({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -72,34 +77,16 @@ const register = async (req: Request, res: Response) => {
     const password = req.body.password;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const profilePicture = "";
-    const user = await userModel.create({
+
+    const user = await createUserWithDefaults({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       password: hashedPassword,
-      profilePicture,
-      joinDate: new Date().toISOString(),
+      profilePicture: "",
     });
 
-    // Create a fridge for the user
-    const fridge = await fridgeModel.create({
-      ownerId: user._id,
-      ingredients: [],
-    });
-
-    // Create a cookbook for the user
-    const cookbook = await cookbookModel.create({
-      ownerId: user._id,
-      recipes: [],
-    });
-
-    // Associate the fridge and cookbook IDs with the user
-    user.fridgeId = fridge._id as any;
-    user.cookbookId = cookbook._id as any;
-    await user.save();
-
-   logger.info("User registered: %s", req.body.email);
+    logger.info("User registered: %s", req.body.email);
     res.status(200).send(user);
   } catch (err) {
     logger.error("Registration error for %s: %o", req.body.email, err);
@@ -119,7 +106,10 @@ const login = async (req: Request, res: Response) => {
     }
 
     // Validate password
-    const validPassword = await bcrypt.compare(req.body.password, user.password);
+    const validPassword = await bcrypt.compare(
+      req.body.password,
+      user.password
+    );
     if (!validPassword) {
       logger.warn("Login failed: invalid password for %s", req.body.email);
       res.status(400).send("Wrong username or password");
@@ -219,8 +209,8 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
 
 export default {
   googleSignIn,
-  register,  
-  login,  
+  register,
+  login,
   logout,
-  refresh,  
+  refresh,
 };
