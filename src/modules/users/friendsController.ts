@@ -78,7 +78,9 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
           notification: {
             title: "New Friend Request",
             body: "You have a new friend request!",
-          },
+            icon: "ic_notification",
+            color: "#f47851", 
+          } as any,
           data: {
             type: "FRIEND_REQUEST",
             fromUserId: from ? from.toString() : "",
