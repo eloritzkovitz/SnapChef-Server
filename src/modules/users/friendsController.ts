@@ -77,14 +77,14 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
           token: recipient.fcmToken,
           notification: {
             title: "New Friend Request",
-            body: "You have a new friend request!",
-            icon: "ic_notification",
-            color: "#f47851", 
-          } as any,
+            body: "You have a new friend request!",            
+          },
           data: {
             type: "FRIEND_REQUEST",
             fromUserId: from ? from.toString() : "",
             requestId: (request._id as string | { toString(): string }).toString(),
+            icon: "ic_notification",
+            color: "#f47851",
           },
         });
       }
