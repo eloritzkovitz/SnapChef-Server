@@ -400,7 +400,9 @@ const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void>
         notification: {
           title: "Check out this recipe!",
           body: `${user.firstName} shared a recipe: ${recipe.title}. Check it out!`,
-        },
+          icon: "ic_notification",
+          color: "#f47851",
+        }as any,
         data: {
           type: "RECIPE_SHARED",
           recipeId: recipe._id.toString(),
