@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import userModel from "./User";
 import FriendRequest from "./FriendRequest";
 import logger from "../../utils/logger";
-import { messaging } from "../../utils/firebaseMessaging";
+import { sendFcmHttpV1 } from "../../utils/firebaseMessaging";
 import { getUserId } from "../../utils/requestHelpers";
 
 // Get friends list for current user
@@ -11,7 +11,7 @@ const getFriends = async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
     const user = await userModel
       .findById(userId)
-      .populate("friends", "firstName lastName email profilePicture")
+      .populate("friends", "firstName lastName email profilePicture");
     res.json({ friends: user?.friends || [] });
   } catch (error) {
     logger.error("Error fetching friends: %o", error);
@@ -20,16 +20,15 @@ const getFriends = async (req: Request, res: Response): Promise<void> => {
 };
 
 // Get pending friend requests for current user
-const getFriendRequests = async (req: Request, res: Response): Promise<void> => {
+const getFriendRequests = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const userId = getUserId(req);
     const requests = await FriendRequest.find({
-      $or: [
-        { to: userId },
-        { from: userId }
-      ]
-    })
-    .populate("from", "firstName lastName email profilePicture");
+      $or: [{ to: userId }, { from: userId }],
+    }).populate("from", "firstName lastName email profilePicture");
     res.json({ requests });
   } catch (error) {
     logger.error("Error fetching friend requests: %o", error);
@@ -38,20 +37,29 @@ const getFriendRequests = async (req: Request, res: Response): Promise<void> => 
 };
 
 // Send a friend request
-const sendFriendRequest = async (req: Request, res: Response): Promise<void> => {
+const sendFriendRequest = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const from = getUserId(req);
     const to = req.params.id;
 
     if (from === to) {
-      res.status(400).json({ message: "Cannot send friend request to yourself." });
+      res
+        .status(400)
+        .json({ message: "Cannot send friend request to yourself." });
       return;
     }
 
     // Check if already friends
     const user = await userModel.findById(from);
 
-    if (user && Array.isArray(user.friends) && user.friends.map((f: any) => f.toString()).includes(to.toString())) {
+    if (
+      user &&
+      Array.isArray(user.friends) &&
+      user.friends.map((f: any) => f.toString()).includes(to.toString())
+    ) {
       res.status(400).json({ message: "Already friends." });
       return;
     }
@@ -69,22 +77,33 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
 
     const request = await FriendRequest.create({ from, to });
 
-    // Send Firebase notification to recipient
+    // Send Firebase notification to recipient using HTTP v1 API
     try {
       const recipient = await userModel.findById(to);
       if (recipient?.fcmToken) {
-        await messaging.send({
+        await sendFcmHttpV1({
           token: recipient.fcmToken,
           notification: {
             title: "New Friend Request",
-            body: "You have a new friend request!",            
+            body: "You have a new friend request!",
           },
           data: {
             type: "FRIEND_REQUEST",
             fromUserId: from ? from.toString() : "",
-            requestId: (request._id as string | { toString(): string }).toString(),
-            icon: "ic_notification",
-            color: "#f47851",
+            requestId: (
+              request._id as string | { toString(): string }
+            ).toString(),
+          },
+          android: {
+            notification: {
+              icon: "ic_notification",
+              color: "#f47851",
+            },
+          },
+          webpush: {
+            notification: {
+              icon: "ic_notification",
+            },
           },
         });
       }
@@ -100,7 +119,10 @@ const sendFriendRequest = async (req: Request, res: Response): Promise<void> => 
 };
 
 // Accept a friend request
-const acceptFriendRequest = async (req: Request, res: Response): Promise<void> => {
+const acceptFriendRequest = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const userId = getUserId(req);
     const { requestId } = req.params;
@@ -130,7 +152,7 @@ const acceptFriendRequest = async (req: Request, res: Response): Promise<void> =
     try {
       const sender = await userModel.findById(request.from);
       if (sender?.fcmToken) {
-        await messaging.send({
+        await sendFcmHttpV1({
           token: sender.fcmToken,
           notification: {
             title: "Friend Request Accepted",
@@ -140,6 +162,17 @@ const acceptFriendRequest = async (req: Request, res: Response): Promise<void> =
             type: "FRIEND_REQUEST_ACCEPTED",
             toUserId: userId ? userId.toString() : "",
             requestId: (request._id as string | { toString(): string }).toString(),
+          },
+          android: {
+            notification: {
+              icon: "ic_notification",
+              color: "#f47851",
+            },
+          },
+          webpush: {
+            notification: {
+              icon: "ic_notification",
+            },
           },
         });
       }
@@ -155,7 +188,10 @@ const acceptFriendRequest = async (req: Request, res: Response): Promise<void> =
 };
 
 // Decline a friend request
-const declineFriendRequest = async (req: Request, res: Response): Promise<void> => {
+const declineFriendRequest = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const userId = getUserId(req);
     const { requestId } = req.params;
@@ -171,28 +207,7 @@ const declineFriendRequest = async (req: Request, res: Response): Promise<void> 
     }
 
     request.status = "declined";
-    await request.save();
-
-    // Send Firebase notification to sender
-    try {
-      const sender = await userModel.findById(request.from);
-      if (sender?.fcmToken) {
-        await messaging.send({
-          token: sender.fcmToken,
-          notification: {
-            title: "Friend Request Declined",
-            body: "Your friend request was declined.",
-          },
-          data: {
-            type: "FRIEND_REQUEST_DECLINED",
-            toUserId: userId.toString(),
-            requestId: (request._id as string | { toString(): string }).toString(),
-          },
-        });
-      }
-    } catch (notifyError) {
-      logger.warn("Failed to send FCM notification: %o", notifyError);
-    }
+    await request.save();    
 
     res.json({ message: "Friend request declined." });
   } catch (error) {
@@ -230,8 +245,8 @@ const removeFriend = async (req: Request, res: Response): Promise<void> => {
 export default {
   getFriends,
   getFriendRequests,
-  sendFriendRequest,  
+  sendFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
-  removeFriend,  
+  removeFriend,
 };
