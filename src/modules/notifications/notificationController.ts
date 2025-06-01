@@ -21,6 +21,8 @@ const sendPushNotification = async (
       notification: {
         title,
         body,
+        icon: 'ic_notification',
+        color: '#f47851',   
       },
       data: {
         type,
