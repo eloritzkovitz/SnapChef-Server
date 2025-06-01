@@ -6,7 +6,7 @@ import { generateImageForRecipe } from "../recipes/imageGeneration";
 import { parseRecipeString } from "../recipes/recipeParser";
 import SharedRecipe from "./SharedRecipe";
 import userModel from "../users/User";
-import { messaging } from "../../utils/firebaseMessaging";
+import { sendFcmHttpV1 } from "../../utils/firebaseMessaging";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
 
@@ -395,19 +395,28 @@ const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void>
     // Send notification to friend with the recipe data
     const friend = await userModel.findById(friendId);
     if (friend?.fcmToken) {
-      await messaging.send({
+      await sendFcmHttpV1({
         token: friend.fcmToken,
         notification: {
           title: "Check out this recipe!",
-          body: `${user.firstName} shared a recipe: ${recipe.title}. Check it out!`,         
+          body: `${user.firstName} shared a recipe: ${recipe.title}. Check it out!`,
         },
         data: {
           type: "RECIPE_SHARED",
           recipeId: recipe._id.toString(),
           title: recipe.title,
           fromUserId: userId ? userId.toString() : "",
-          icon: "ic_notification",
-          color: "#f47851",
+        },
+        android: {
+          notification: {
+            icon: "ic_notification",
+            color: "#f47851",
+          },
+        },
+        webpush: {
+          notification: {
+            icon: "ic_notification",
+          },
         },
       });
     }
