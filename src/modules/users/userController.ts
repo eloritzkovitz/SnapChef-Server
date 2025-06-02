@@ -358,6 +358,35 @@ const sendOtp = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Verify OTP for password reset
+const verifyOtp = async (req: Request, res: Response): Promise<void> => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    res.status(400).json({ message: "Email and OTP are required." });
+    return;
+  }
+
+  try {
+    const user = await userModel.findOne({ email });
+
+    if (!user || user.otp !== otp || user.otpExpires < new Date()) {
+      res.status(400).json({ message: "Invalid or expired OTP." });
+      return;
+    }
+
+    // OTP is valid, clear it from the database
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: "OTP verified successfully." });
+  } catch (error) {
+    logger.error("Error verifying OTP: %o", error);
+    res.status(500).json({ message: "Error verifying OTP", error });
+  }
+};
+
 export default {  
   getUserData,  
   updateUser,
@@ -367,5 +396,6 @@ export default {
   findUsersByName,
   getUserProfile,
   getUserStats,
-  sendOtp,   
+  sendOtp,
+  verifyOtp,   
 };
