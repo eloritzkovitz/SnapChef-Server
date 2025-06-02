@@ -80,7 +80,10 @@ const sendFriendRequest = async (
     // Send Firebase notification to recipient using HTTP v1 API
     try {
       const recipient = await userModel.findById(to);
-      if (recipient?.fcmToken) {
+      // Check notification preference before sending
+      const friendRequestsEnabled =
+        recipient?.preferences?.notificationPreferences?.friendRequests ?? true;
+      if (recipient?.fcmToken && friendRequestsEnabled) {
         await sendFcmHttpV1({
           token: recipient.fcmToken,
           notification: {
@@ -151,7 +154,10 @@ const acceptFriendRequest = async (
     // Send Firebase notification to sender
     try {
       const sender = await userModel.findById(request.from);
-      if (sender?.fcmToken) {
+      // Check notification preference before sending
+      const friendRequestsEnabled =
+        sender?.preferences?.notificationPreferences?.friendRequests ?? true;
+      if (sender?.fcmToken && friendRequestsEnabled) {
         await sendFcmHttpV1({
           token: sender.fcmToken,
           notification: {
