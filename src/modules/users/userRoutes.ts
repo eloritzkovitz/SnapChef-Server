@@ -6,11 +6,11 @@ import upload from "../../middlewares/upload";
 const router = express.Router();
 
 /**
-* @swagger
-* tags:
-*   name: Users
-*   description: API for managing users
-*/
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: API for managing users
+ */
 
 /**
  * @swagger
@@ -26,16 +26,91 @@ const router = express.Router();
  *       required:
  *         - email
  *         - password
+ *         - firstName
+ *         - lastName
+ *         - fridgeId
+ *         - cookbookId
+ *         - preferences
+ *         - friends
+ *         - joinDate
  *       properties:
+ *         _id:
+ *           type: string
+ *           description: The user's unique identifier
+ *           example: "60d21b4667d0d8992e610c85"
  *         email:
  *           type: string
  *           description: The user's email address
+ *           example: "user@example.com"
  *         password:
  *           type: string
- *           description: The user's password
- *       example:
- *         email: "user@example.com"
- *         password: "123456"
+ *           description: The user's hashed password
+ *           example: "$2b$10$abcdef..."
+ *         firstName:
+ *           type: string
+ *           description: The user's first name
+ *           example: "John"
+ *         lastName:
+ *           type: string
+ *           description: The user's last name
+ *           example: "Doe"
+ *         profilePicture:
+ *           type: string
+ *           description: URL to the user's profile picture
+ *           example: "https://example.com/profile/john.jpg"
+ *         role:
+ *           type: string
+ *           description: The user's role
+ *           example: "user"
+ *         fridgeId:
+ *           type: string
+ *           description: The user's fridge ID
+ *           example: "60d21b4667d0d8992e610c99"
+ *         cookbookId:
+ *           type: string
+ *           description: The user's cookbook ID
+ *           example: "60d21b4667d0d8992e610c98"
+ *         preferences:
+ *           type: object
+ *           description: The user's preferences
+ *           example:
+ *             allergies: ["peanuts"]
+ *             dietaryPreferences:
+ *               vegan: false
+ *               vegetarian: true
+ *         friends:
+ *           type: array
+ *           description: List of friend user IDs
+ *           items:
+ *             type: string
+ *           example: ["60d21b4667d0d8992e610c86", "60d21b4667d0d8992e610c87"]
+ *         joinDate:
+ *           type: string
+ *           description: The date the user joined
+ *           example: "2024-06-02T18:00:00.000Z"
+ *         refreshToken:
+ *           type: string
+ *           description: The user's refresh token
+ *           example: "some-refresh-token"
+ *         fcmToken:
+ *           type: string
+ *           description: The user's FCM token for push notifications
+ *           example: "some-fcm-token"
+ *         otp:
+ *           type: string
+ *           description: The user's current OTP (if any)
+ *           example: "123456"
+ *           nullable: true
+ *         otpExpires:
+ *           type: string
+ *           format: date-time
+ *           description: When the OTP expires
+ *           example: "2024-06-02T18:10:00.000Z"
+ *           nullable: true
+ *         isVerified:
+ *           type: boolean
+ *           description: Whether the user's email is verified
+ *           example: false
  */
 
 /**
@@ -106,7 +181,12 @@ router.get("/me", authenticate, usersController.getUserData);
  *       500:
  *         description: Server error
  */
-router.put("/me", authenticate, upload.single("profilePicture"), usersController.updateUser);
+router.put(
+  "/me",
+  authenticate,
+  upload.single("profilePicture"),
+  usersController.updateUser
+);
 
 /**
  * @swagger
