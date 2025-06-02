@@ -392,9 +392,11 @@ const shareRecipeWithFriend = async (req: Request, res: Response): Promise<void>
       status: "pending"
     });
 
-    // Send notification to friend with the recipe data
+    // Send notification to friend with the recipe data, only if enabled
     const friend = await userModel.findById(friendId);
-    if (friend?.fcmToken) {
+    const recipeSharesEnabled =
+      friend?.preferences?.notificationPreferences?.recipeShares ?? true;
+    if (friend?.fcmToken && recipeSharesEnabled) {
       await sendFcmHttpV1({
         token: friend.fcmToken,
         notification: {

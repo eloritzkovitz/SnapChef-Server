@@ -18,6 +18,7 @@ export interface IUser {
   fcmToken?: string;
   otp?: string;
   otpExpires?: Date;
+  isVerified?: boolean;
 }
 
 const UserSchema = new mongoose.Schema({
@@ -35,7 +36,8 @@ const UserSchema = new mongoose.Schema({
   refreshToken: { type: String, default: "" },
   fcmToken: { type: String, default: "" },
   otp: { type: String, default: null },
-  otpExpires: { type: Date, default: null }
+  otpExpires: { type: Date, default: null },
+  isVerified: { type: Boolean, default: false }
 });
 
 const userModel = mongoose.model<IUser>("Users", UserSchema);
