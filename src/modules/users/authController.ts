@@ -5,7 +5,7 @@ import userModel from "./User";
 import { createUserWithDefaults } from "./userUtils";
 import logger from "../../utils/logger";
 import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
-import { generateOtp } from "../../utils/otpService";
+import { generateOtp, sendOtpMail } from "../../utils/otpService";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -79,6 +79,8 @@ const register = async (req: Request, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const { otp, otpExpires } = generateOtp();
+
     const user = await createUserWithDefaults({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
@@ -87,7 +89,15 @@ const register = async (req: Request, res: Response) => {
       profilePicture: "",
     });
 
-    logger.info("User registered: %s", req.body.email);
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    user.isVerified = false;
+    await user.save();
+
+    // Send OTP via email
+    await sendOtpMail(req.body.email, otp, "Verify your SnapChef account");
+    logger.info("OTP sent to email for verification: %s", req.body.email);
+
     res.status(200).send(user);
   } catch (err) {
     logger.error("Registration error for %s: %o", req.body.email, err);
@@ -272,9 +282,9 @@ const resendOtp = async (req: Request, res: Response): Promise<void> => {
     user.otpExpires = otpExpires;
     await user.save();
 
-    // TODO: Send OTP via email
+    await sendOtpMail(email, otp, "Your SnapChef password reset code");
     logger.info("OTP resent to email: %s", email);
-
+    
     res.status(200).json({ message: "OTP resent successfully." });
   } catch (error) {
     logger.error("Error resending OTP: %o", error);
@@ -306,7 +316,13 @@ const requestPasswordReset = async (
     user.otpExpires = otpExpires;
     await user.save();
 
-    // TODO: Send OTP via email
+    // Send OTP via email
+    await sendOtpMail(
+      email,
+      otp,
+      "SnapChef Password Reset OTP"
+    );
+
     logger.info("Password reset OTP sent to email: %s", email);
 
     res.status(200).json({ message: "Password reset OTP sent successfully." });
