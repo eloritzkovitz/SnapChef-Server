@@ -5,6 +5,7 @@ import userModel from "./User";
 import { createUserWithDefaults } from "./userUtils";
 import logger from "../../utils/logger";
 import { generateToken, verifyRefreshToken } from "../../utils/tokenService";
+import { generateOtp } from "../../utils/otpService";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -207,10 +208,78 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Send OTP for password reset
+const sendOtp = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400).json({ message: "Email is required." });
+    return;
+  }
+
+  try {
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+
+    const { otp, otpExpires } = generateOtp();
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+
+    // TODO: Send OTP via email (use a mail service like nodemailer)
+    logger.info("OTP sent to email: %s", email);
+
+    res.status(200).json({ message: "OTP sent successfully." });
+  } catch (error) {
+    logger.error("Error sending OTP: %o", error);
+    res.status(500).json({ message: "Error sending OTP", error });
+  }
+};
+
+// Verify OTP for password reset
+const verifyOtp = async (req: Request, res: Response): Promise<void> => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    res.status(400).json({ message: "Email and OTP are required." });
+    return;
+  }
+
+  try {
+    const user = await userModel.findOne({ email });
+
+    if (
+      !user ||
+      user.otp !== otp ||
+      !user.otpExpires ||
+      user.otpExpires < new Date()
+    ) {
+      res.status(400).json({ message: "Invalid or expired OTP." });
+      return;
+    }
+
+    // OTP is valid, clear it from the database
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "OTP verified successfully." });
+  } catch (error) {
+    logger.error("Error verifying OTP: %o", error);
+    res.status(500).json({ message: "Error verifying OTP", error });
+  }
+};
+
 export default {
   googleSignIn,
   register,
   login,
   logout,
   refresh,
+  sendOtp,
+  verifyOtp,
 };

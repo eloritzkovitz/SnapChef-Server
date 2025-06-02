@@ -201,4 +201,63 @@ router.post("/refresh", authController.refresh);
  */
 router.post("/logout", authController.logout);
 
+/**
+ * @swagger
+ * /api/users/send-otp:
+ *   post:
+ *     summary: Send OTP for phone number verification
+ *     description: Sends a one-time password (OTP) to the user's phone number for verification.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 example: "+1234567890"
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Invalid phone number
+ *       500:
+ *         description: Server error
+ */
+router.post("/send-otp", authController.sendOtp);
+
+/**
+ * @swagger
+ * /api/users/verify-otp:
+ *   post:
+ *     summary: Verify OTP for phone number
+ *     description: Verifies the one-time password (OTP) entered by the user for phone number verification.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 example: "+1234567890"
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *       400:
+ *         description: Invalid OTP or phone number
+ *       500:
+ *         description: Server error
+ */
+router.post("/verify-otp", authController.verifyOtp);
+
 export default router;
