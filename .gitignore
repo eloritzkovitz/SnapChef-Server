@@ -5,6 +5,13 @@
 
 # Environment files
 *.env
+*.env_dev
+*.env_prod
+client-cert.pem
+client-key.pem
+client.csr
+
+
 
 #node
 node_modules/
@@ -33,3 +40,4 @@ app.*.map.json
 .buildlog/
 .history
 .svn/
+snapchef-main-firebase-adminsdk-fbsvc-ba187c4cfb.json
