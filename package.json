@@ -5,10 +5,10 @@
   "main": "app.js",
   "scripts": {
     "build": "tsc",
-    "dev": "cp .env_dev .env && nodemon ./src/app.ts",
-    "prod": "cp .env_prod .env && tsc -p tsconfig_prod.json && node ./dist/app.js",
-    "start": "cp .env_dev .env && tsc && node ./dist/app.js",
-    "test": "cross-env NODE_ENV=test jest --coverage --runInBand"
+    "dev": "copyfiles .env_dev .env && nodemon ./src/app.ts",
+    "prod": "copyfiles .env_prod .env && tsc -p tsconfig_prod.json && node ./dist/app.js",
+    "start": "copyfiles .env_dev .env && tsc && node ./dist/app.js",
+    "test": "copyfiles .env_test jest --coverage --runInBand"
   },
   "dependencies": {
     "@google-cloud/vision": "^5.1.0",
