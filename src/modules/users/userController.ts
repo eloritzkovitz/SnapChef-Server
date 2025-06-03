@@ -8,6 +8,7 @@ import cookbookModel from "../cookbook/Cookbook";
 import { deleteFile } from "../../utils/fileService";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
+import { generateOtp } from "../../utils/otpService";
 
 // Get the authenticated user's data
 const getUserData = async (req: Request, res: Response): Promise<void> => {
@@ -101,6 +102,8 @@ const updateUser = async (
   }
 };
 
+const NOTIFICATION_KEYS = ["friendRequests", "recipeShares"];
+
 // Update user preferences
 const updatePreferences = async (
   req: Request<{ id: string }, {}, Partial<Preferences>>,
@@ -116,6 +119,15 @@ const updatePreferences = async (
       logger.warn("Attempted to update preferences for non-existent user: %s", userId);
       res.status(404).json({ message: "User not found" });
       return;
+    }
+
+    // Merge and validate notificationPreferences
+    const updatedNotificationPreferences: Record<string, boolean> = {};
+    for (const key of NOTIFICATION_KEYS) {
+      updatedNotificationPreferences[key] =
+        preferences.notificationPreferences?.[key] ??
+        user.preferences?.notificationPreferences?.[key] ??
+        true; // default to true
     }
 
     // Merge and validate preferences
@@ -135,6 +147,7 @@ const updatePreferences = async (
         kosher: preferences.dietaryPreferences?.kosher ?? user.preferences?.dietaryPreferences?.kosher ?? false,
         halal: preferences.dietaryPreferences?.halal ?? user.preferences?.dietaryPreferences?.halal ?? false,
       },
+      notificationPreferences: updatedNotificationPreferences,
     };
 
     // Update the user's preferences
@@ -333,5 +346,5 @@ export default {
   deleteUser,
   findUsersByName,
   getUserProfile,
-  getUserStats,     
+  getUserStats,    
 };

@@ -16,6 +16,9 @@ export interface IUser {
   joinDate?: string;
   refreshToken?: string;
   fcmToken?: string;
+  otp?: string;
+  otpExpires?: Date;
+  isVerified?: boolean;
 }
 
 const UserSchema = new mongoose.Schema({
@@ -31,8 +34,11 @@ const UserSchema = new mongoose.Schema({
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Users', default: [] }],
   joinDate: { type: String, required: true },
   refreshToken: { type: String, default: "" },
-  fcmToken: { type: String, default: "" }
-});
+  fcmToken: { type: String, default: "" },
+  otp: { type: String, default: null },
+  otpExpires: { type: Date, default: null },
+  isVerified: { type: Boolean, default: false }
+}, { timestamps: true });
 
 const userModel = mongoose.model<IUser>("Users", UserSchema);
 
