@@ -9,17 +9,17 @@ This folder contains all the main source code for the SnapChef API server. Below
 
 - [`cookbook/`](./modules/cookbook/)  
   Manages user cookbooks, including recipes and sharing functionality.
-  - [`sharedRecipes/`]
+  - `sharedRecipes/`
     Submodule for handling shared recipes between users.
 
 - [`fridge/`](./modules/fridge/)  
   Manages user fridges, including inventory and related operations.
-  - [`grocery/`]
+  - `grocery/`
     Submodule for grocery list management and related features.
 
 - [`ingredients/`](./modules/ingredients/)  
   Handles ingredient management, and related endpoints.
-  - [`ingredientRecognition/`]
+  - `ingredientRecognition/`
     Submodule for ingredient recognition.
 
 - [`notifications/`](./modules/notifications/)  
@@ -30,9 +30,9 @@ This folder contains all the main source code for the SnapChef API server. Below
 
 - [`users/`](./modules/users/)  
   Manages user accounts, profiles, and preferences.
-  - [`auth/`]
+  - `auth/`
     Submodule for authentication, registration, OTP, and password reset.
-  - [`friends/`]
+  - `friends/`
     Submodule for friend requests, friend management, and sharing.
 
 - [`utils/`](./utils/)  
