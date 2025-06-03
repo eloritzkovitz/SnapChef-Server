@@ -1,66 +1,36 @@
-# SnapChef Backend
+# SnapChef API Server
 
-The SnapChef Backend is a Node.js application that provides API endpoints for image recognition and ingredient categorization. It uses the Google Cloud Vision API to process images and recognize ingredients.
+The SnapChef API Server is a Node.js backend that powers the SnapChef application, providing secure REST API endpoints for user management, ingredient and recipe recognition, image uploads, and more.
 
 ## Features
 
-- Recognize ingredients from photos of food items.
-- Extract and recognize ingredients from scanned receipts.
-- Identify food items and their categories from barcodes.
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js: [Install Node.js](https://nodejs.org/)
-- Google Cloud Vision API: [Set up Google Cloud Vision API](https://cloud.google.com/vision/docs/setup)
-- OpenAI: [Set up OpenAI API](https://platform.openai.com/docs/quickstart)
-
-### Installation
-
-1. **Clone the repository:**
-```sh
-   git clone https://github.com/Elor-Itz/SnapChef.git
-   cd SnapChef/api_server
-   ```
-
-2. **Install dependencies:**
-```sh
-   npm install
-   ```
-
-3. **Set up environment variables:**
-   Create a `.env` file in the `SnapChef/api_server` folder and add your API keys:
-```sh
-   GOOGLE_APPLICATION_CREDENTIALS=path/to/your/service-account-file.json
-   OPENAI_API_KEY=<YOUR_API_KEY>
-   ```
-
-4. **Run the server:**
-```sh
-   tsc
-   node dist/server.js     
-   ``` 
-   Make sure you are inside the `/api_server` folder.
-
-## Usage
-
-1. Start the backend server.
-
-2. Use the provided API endpoints according to your needs.
-
-## API Endpoints
-
-* `POST /recognize/photo:` Recognize ingredients from a photo.
-* `POST /recognize/receipt:` Extract and recognize ingredients from a scanned receipt.
-* `POST /recognize/barcode:` Identify food items and their categories from a barcode.
+- **User Authentication:** Email/password registration with OTP verification, Google sign-in, password reset, and JWT-based authentication.
+- **Ingredient & Recipe Recognition:** Integrates with Google Cloud Vision to recognize ingredients from photos, receipts, and barcodes.
+- **API:** Creates, updates and retrieves data for users through endpoints, divided into modules and submodules.
+- **File Uploads:** Supports image uploads for ingredient recognition, recipe AI-generated images and profile pictures.
+- **User Preferences:** Manages dietary, allergy, and notification preferences.
+- **Friend System:** Friend requests, notifications, and recipe sharing between users.
+- **Push Notifications:** Sends real-time notifications via Firebase Cloud Messaging (FCM).
+- **Security:** Password hashing, email verification, and abuse prevention.
+- **Admin & Logging:** Logs key actions and supports admin operations.
 
 ## Project Structure
 
-* `src/:` Contains the main application code.
-  * `server.ts:` Entry point of the application.
-  * `modules/:` Contains API modules.
-    * `ingredient/:` Handles ingredient recognition, creation and maintenance.
-    * `recipe/:` Handles recipe generation.
-* `tsconfig.json:` Contains configuration files.
-* `package.json:` Defines the dependencies and scripts for the Node.js project.
+- `src/` — Main application code
+  - `server.ts` — Entry point
+  - `modules/` — API modules (users, ingredients, recipes, etc.)
+  - `utils/` — Utility functions and services
+  - `jobs/` — Scheduled/maintenance scripts (e.g., cleanup)
+- `dist/` — Compiled output
+- `package.json` — Dependencies and scripts
+- `tsconfig.json` — TypeScript configuration
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [API Reference](https://snapchef-app.vercel.app/api)
+
+## Notes
+
+- The server supports cross-platform development (Windows, Mac, Linux).
+- Environment variables are used for configuration and API keys.
