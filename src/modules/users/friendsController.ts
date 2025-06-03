@@ -121,6 +121,46 @@ const sendFriendRequest = async (
   }
 };
 
+// Cancel a friend request (sender cancels their own pending request)
+const cancelFriendRequest = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = getUserId(req);
+    const { requestId } = req.params;
+
+    const request = await FriendRequest.findById(requestId);
+    if (!request) {
+      res.status(404).json({ message: "Friend request not found." });
+      return;
+    }
+    if (!userId) {
+      res.status(400).json({ message: "User ID is required." });
+      return;
+    }
+    if (request.from.toString() !== userId.toString()) {
+      res
+        .status(403)
+        .json({ message: "You can only cancel your own friend requests." });
+      return;
+    }
+    if (request.status !== "pending") {
+      res
+        .status(400)
+        .json({ message: "Only pending requests can be cancelled." });
+      return;
+    }
+
+    await request.deleteOne();
+
+    res.json({ message: "Friend request cancelled." });
+  } catch (error) {
+    logger.error("Error cancelling friend request: %o", error);
+    res.status(500).json({ message: "Failed to cancel friend request." });
+  }
+};
+
 // Accept a friend request
 const acceptFriendRequest = async (
   req: Request,
@@ -167,7 +207,9 @@ const acceptFriendRequest = async (
           data: {
             type: "FRIEND_REQUEST_ACCEPTED",
             toUserId: userId ? userId.toString() : "",
-            requestId: (request._id as string | { toString(): string }).toString(),
+            requestId: (
+              request._id as string | { toString(): string }
+            ).toString(),
           },
           android: {
             notification: {
@@ -213,7 +255,7 @@ const declineFriendRequest = async (
     }
 
     request.status = "declined";
-    await request.save();    
+    await request.save();
 
     res.json({ message: "Friend request declined." });
   } catch (error) {
@@ -252,6 +294,7 @@ export default {
   getFriends,
   getFriendRequests,
   sendFriendRequest,
+  cancelFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
   removeFriend,
