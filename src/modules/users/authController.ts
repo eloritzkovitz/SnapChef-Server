@@ -45,6 +45,9 @@ const googleSignIn = async (req: Request, res: Response) => {
         password: sub, // Use Google sub as a placeholder password
         profilePicture: picture,
       });
+      // Verify the user by default
+      user.isVerified = true;
+      await user.save();
     } else {
       logger.info("Existing user signed in with Google: %s", email);
     }
