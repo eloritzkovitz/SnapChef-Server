@@ -63,6 +63,35 @@ router.post("/requests/:id", authenticate, friendsController.sendFriendRequest);
 
 /**
  * @swagger
+ * /api/users/friends/requests/{requestId}/cancel:
+ *   delete:
+ *     summary: Cancel a pending friend request (sender only)
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the friend request to cancel
+ *     responses:
+ *       200:
+ *         description: Friend request cancelled
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Not found
+ */
+router.delete("/requests/:requestId/cancel", authenticate, friendsController.cancelFriendRequest);
+
+/**
+ * @swagger
  * /api/users/friends/requests/{requestId}/accept:
  *   post:
  *     summary: Accept a friend request
