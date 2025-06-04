@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import analyticsService from "./analyticsService";
+import logService from "./logService";
+import metricsService from "./metricsService";
 
 // Popular ingredients
 const getPopularIngredients = async (req: Request, res: Response) => {
   try {
-    const data = await analyticsService.getPopularIngredients();
+    const data = await metricsService.getPopularIngredients();
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch popular ingredients." });
@@ -14,7 +15,7 @@ const getPopularIngredients = async (req: Request, res: Response) => {
 // Popular groceries
 const getPopularGroceries = async (req: Request, res: Response) => {
   try {
-    const data = await analyticsService.getPopularGroceries();
+    const data = await metricsService.getPopularGroceries();
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch popular groceries." });
@@ -25,7 +26,7 @@ const getPopularGroceries = async (req: Request, res: Response) => {
 const getActiveUsers = async (req: Request, res: Response) => {
   try {
     const period = (req.query.period as string) || "daily"; // daily, weekly, monthly
-    const data = await analyticsService.getActiveUsers(period);
+    const data = await metricsService.getActiveUsers(period);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch active users." });
@@ -36,7 +37,7 @@ const getActiveUsers = async (req: Request, res: Response) => {
 const getIngredientTrends = async (req: Request, res: Response) => {
   try {
     const interval = (req.query.interval as string) || "day";
-    const data = await analyticsService.getIngredientTrends(interval);
+    const data = await metricsService.getIngredientTrends(interval);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch ingredient trends." });
@@ -46,7 +47,7 @@ const getIngredientTrends = async (req: Request, res: Response) => {
 // Error statistics (aggregated from logs)
 const getErrorStats = async (req: Request, res: Response) => {
   try {
-    const data = await analyticsService.getErrorStats();
+    const data = await metricsService.getErrorStats();
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch error stats." });
@@ -57,7 +58,7 @@ const getErrorStats = async (req: Request, res: Response) => {
 const getErrors = async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string) || 100;
   try {
-    const data = await analyticsService.getErrors(limit);
+    const data = await logService.getErrors(limit);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch error logs." });
@@ -68,7 +69,7 @@ const getErrors = async (req: Request, res: Response) => {
 const getWarnings = async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string) || 100;
   try {
-    const data = await analyticsService.getWarnings(limit);
+    const data = await logService.getWarnings(limit);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch warning logs." });
@@ -79,7 +80,7 @@ const getWarnings = async (req: Request, res: Response) => {
 const getInfo = async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string) || 100;
   try {
-    const data = await analyticsService.getInfo(limit);
+    const data = await logService.getInfo(limit);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch info logs." });
@@ -90,7 +91,7 @@ const getInfo = async (req: Request, res: Response) => {
 const getLogs = async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string) || 100;
   try {
-    const data = await analyticsService.getLogs(limit);
+    const data = await logService.getLogs(limit);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch logs." });
@@ -100,7 +101,7 @@ const getLogs = async (req: Request, res: Response) => {
 // General dashboard summary (for admin)
 const getDashboardSummary = async (req: Request, res: Response) => {
   try {
-    const data = await analyticsService.getDashboardSummary();
+    const data = await metricsService.getDashboardSummary();
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch dashboard summary." });

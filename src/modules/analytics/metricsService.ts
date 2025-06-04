@@ -1,6 +1,6 @@
 import { readLogs, extractNameFromMessage } from "./logUtils";
 
-const analyticsService = { 
+const metricsService = { 
   // Get popular ingredients  
   getPopularIngredients: async () => {
     const logs = readLogs();
@@ -111,51 +111,16 @@ const analyticsService = {
       }
     });
     return { totalErrors, last24h, byType };
-  },  
-
-  // Get error logs (paginated)
-  getErrors: async (limit = 100) => {
-    const logs = readLogs();
-    return logs
-      .filter(log => log.level === "error")
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
-  },
-
-  // Get warning logs (paginated)
-  getWarnings: async (limit = 100) => {
-    const logs = readLogs();
-    return logs
-      .filter(log => log.level === "warn")
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
-  },
-
-  // Get info logs (paginated)
-  getInfo: async (limit = 100) => {
-    const logs = readLogs();
-    return logs
-      .filter(log => log.level === "info")
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
-  },
-
-  // Get all logs (paginated)
-  getLogs: async (limit = 100) => {
-    const logs = readLogs();
-    return logs
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
   },
     
   // General dashboard summary (for admin)
   getDashboardSummary: async () => {
     // Aggregate key metrics for the dashboard
     const [popularIngredients, popularGroceries, errorStats, activeUsers] = await Promise.all([
-      analyticsService.getPopularIngredients(),
-      analyticsService.getPopularGroceries(),      
-      analyticsService.getErrorStats(),
-      analyticsService.getActiveUsers("daily"),
+      metricsService.getPopularIngredients(),
+      metricsService.getPopularGroceries(),      
+      metricsService.getErrorStats(),
+      metricsService.getActiveUsers("daily"),
     ]);
     return {
       popularIngredients: popularIngredients.slice(0, 5),
@@ -166,4 +131,4 @@ const analyticsService = {
   },
 };
 
-export default analyticsService;
+export default metricsService;
