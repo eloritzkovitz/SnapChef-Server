@@ -18,6 +18,8 @@ const router = Router();
  *   get:
  *     summary: Get the most popular added ingredients
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of popular ingredients
@@ -41,6 +43,8 @@ router.get("/popular-ingredients", authenticate, requireAdmin, analyticsControll
  *   get:
  *     summary: Get the most popular added groceries
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of popular groceries
@@ -64,6 +68,8 @@ router.get("/popular-groceries", authenticate, requireAdmin, analyticsController
  *   get:
  *     summary: Get the most active users
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: period
@@ -94,6 +100,8 @@ router.get("/active-users", authenticate, requireAdmin, analyticsController.getA
  *   get:
  *     summary: Get ingredient addition trends over time
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: interval
@@ -124,6 +132,8 @@ router.get("/ingredient-trends", authenticate, requireAdmin, analyticsController
  *   get:
  *     summary: Get error statistics
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Error statistics
@@ -145,10 +155,12 @@ router.get("/errors", authenticate, requireAdmin, analyticsController.getErrorSt
 
 /**
  * @swagger
- * /api/analytics/log-errors:
+ * /api/analytics/logs/errors:
  *   get:
  *     summary: Get recent error logs
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -165,14 +177,16 @@ router.get("/errors", authenticate, requireAdmin, analyticsController.getErrorSt
  *               items:
  *                 type: object
  */
-router.get("/log-errors", authenticate, requireAdmin, analyticsController.getErrors);
+router.get("/logs/errors", authenticate, requireAdmin, analyticsController.getErrors);
 
 /**
  * @swagger
- * /api/analytics/log-warnings:
+ * /api/analytics/logs/warnings:
  *   get:
  *     summary: Get recent warning logs
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -189,14 +203,16 @@ router.get("/log-errors", authenticate, requireAdmin, analyticsController.getErr
  *               items:
  *                 type: object
  */
-router.get("/log-warnings", authenticate, requireAdmin, analyticsController.getWarnings);
+router.get("/logs/warnings", authenticate, requireAdmin, analyticsController.getWarnings);
 
 /**
  * @swagger
- * /api/analytics/log-info:
+ * /api/analytics/logs/info:
  *   get:
  *     summary: Get recent info logs
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -213,7 +229,7 @@ router.get("/log-warnings", authenticate, requireAdmin, analyticsController.getW
  *               items:
  *                 type: object
  */
-router.get("/log-info", authenticate, requireAdmin, analyticsController.getInfo);
+router.get("/logs/info", authenticate, requireAdmin, analyticsController.getInfo);
 
 /**
  * @swagger
@@ -221,6 +237,8 @@ router.get("/log-info", authenticate, requireAdmin, analyticsController.getInfo)
  *   get:
  *     summary: Get recent logs (all levels)
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -245,6 +263,8 @@ router.get("/logs", authenticate, requireAdmin, analyticsController.getLogs);
  *   get:
  *     summary: Get a summary for the admin dashboard
  *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Dashboard summary
