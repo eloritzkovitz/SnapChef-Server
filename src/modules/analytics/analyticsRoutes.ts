@@ -1,5 +1,6 @@
 import { Router } from "express";
 import analyticsController from "./analyticsController";
+import { authenticate, requireAdmin } from "../../middlewares/auth";
 
 const router = Router();
 
@@ -8,7 +9,7 @@ const router = Router();
  * tags:
  *   - name: Analytics
  *     description: >
- *       API for retrieving analytics and statistics
+ *       API for retrieving analytics and statistics for the admin dashboard.
  */
 
 /**
@@ -32,7 +33,7 @@ const router = Router();
  *                   count:
  *                     type: number
  */
-router.get("/popular-ingredients", analyticsController.getPopularIngredients);
+router.get("/popular-ingredients", authenticate, requireAdmin, analyticsController.getPopularIngredients);
 
 /**
  * @swagger
@@ -55,30 +56,7 @@ router.get("/popular-ingredients", analyticsController.getPopularIngredients);
  *                   count:
  *                     type: number
  */
-router.get("/popular-groceries", analyticsController.getPopularGroceries);
-
-/**
- * @swagger
- * /api/analytics/popular-recipes:
- *   get:
- *     summary: Get the most popular recipes
- *     tags: [Analytics]
- *     responses:
- *       200:
- *         description: List of popular recipes
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   title:
- *                     type: string
- *                   count:
- *                     type: number
- */
-router.get("/popular-recipes", analyticsController.getPopularRecipes);
+router.get("/popular-groceries", authenticate, requireAdmin, analyticsController.getPopularGroceries);
 
 /**
  * @swagger
@@ -86,6 +64,13 @@ router.get("/popular-recipes", analyticsController.getPopularRecipes);
  *   get:
  *     summary: Get the most active users
  *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [daily, weekly, monthly]
+ *         description: Time period for activity (default is daily)
  *     responses:
  *       200:
  *         description: List of active users
@@ -101,7 +86,7 @@ router.get("/popular-recipes", analyticsController.getPopularRecipes);
  *                   actions:
  *                     type: number
  */
-router.get("/active-users", analyticsController.getActiveUsers);
+router.get("/active-users", authenticate, requireAdmin, analyticsController.getActiveUsers);
 
 /**
  * @swagger
@@ -131,7 +116,7 @@ router.get("/active-users", analyticsController.getActiveUsers);
  *                   count:
  *                     type: number
  */
-router.get("/ingredient-trends", analyticsController.getIngredientTrends);
+router.get("/ingredient-trends", authenticate, requireAdmin, analyticsController.getIngredientTrends);
 
 /**
  * @swagger
@@ -156,6 +141,150 @@ router.get("/ingredient-trends", analyticsController.getIngredientTrends);
  *                   additionalProperties:
  *                     type: number
  */
-router.get("/errors", analyticsController.getErrorStats);
+router.get("/errors", authenticate, requireAdmin, analyticsController.getErrorStats);
+
+/**
+ * @swagger
+ * /api/analytics/log-errors:
+ *   get:
+ *     summary: Get recent error logs
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of logs to return (default 100)
+ *     responses:
+ *       200:
+ *         description: List of error logs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ */
+router.get("/log-errors", authenticate, requireAdmin, analyticsController.getErrors);
+
+/**
+ * @swagger
+ * /api/analytics/log-warnings:
+ *   get:
+ *     summary: Get recent warning logs
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of logs to return (default 100)
+ *     responses:
+ *       200:
+ *         description: List of warning logs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ */
+router.get("/log-warnings", authenticate, requireAdmin, analyticsController.getWarnings);
+
+/**
+ * @swagger
+ * /api/analytics/log-info:
+ *   get:
+ *     summary: Get recent info logs
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of logs to return (default 100)
+ *     responses:
+ *       200:
+ *         description: List of info logs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ */
+router.get("/log-info", authenticate, requireAdmin, analyticsController.getInfo);
+
+/**
+ * @swagger
+ * /api/analytics/logs:
+ *   get:
+ *     summary: Get recent logs (all levels)
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of logs to return (default 100)
+ *     responses:
+ *       200:
+ *         description: List of logs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ */
+router.get("/logs", authenticate, requireAdmin, analyticsController.getLogs);
+
+/**
+ * @swagger
+ * /api/analytics/dashboard-summary:
+ *   get:
+ *     summary: Get a summary for the admin dashboard
+ *     tags: [Analytics]
+ *     responses:
+ *       200:
+ *         description: Dashboard summary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 popularIngredients:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       count:
+ *                         type: number
+ *                 popularGroceries:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       count:
+ *                         type: number
+ *                 errorStats:
+ *                   type: object
+ *                   properties:
+ *                     totalErrors:
+ *                       type: number
+ *                     last24h:
+ *                       type: number
+ *                     byType:
+ *                       type: object
+ *                       additionalProperties:
+ *                         type: number
+ *                 activeUsers:
+ *                   type: number
+ */
+router.get("/dashboard-summary", authenticate, requireAdmin, analyticsController.getDashboardSummary);
 
 export default router;

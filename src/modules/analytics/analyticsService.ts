@@ -24,16 +24,16 @@ function extractNameFromMessage(message: string) {
   return match ? match[1] : null;
 }
 
-// Helper to extract title from the log message
 function extractTitleFromMessage(message: string) {
   const match = message.match(/"title":"([^"]+)"/);
   return match ? match[1] : null;
 }
 
 const analyticsService = {
+  // Data/metrics endpoints first
 
-    // Get popular ingredients  
-    getPopularIngredients: async () => {
+  // Get popular ingredients  
+  getPopularIngredients: async () => {
     const logs = readLogs();
     const counts: Record<string, number> = {};
     logs.forEach(log => {
@@ -67,34 +67,27 @@ const analyticsService = {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
   },
-
-  // Get popular recipes
-  getPopularRecipes: async () => {
+  
+  // Get active users (optionally by period)
+  getActiveUsers: async (period: string = "daily") => {
     const logs = readLogs();
+    const now = new Date();
+    let cutoff: Date;
+    if (period === "weekly") {
+      cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (period === "monthly") {
+      cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    } else {
+      // daily
+      cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
     const counts: Record<string, number> = {};
     logs.forEach(log => {
       if (
         log.message &&
-        (log.message.startsWith("Recipe generated with ingredients") ||
-         log.message.startsWith("Recipe added to cookbook"))
-      ) {
-        const title = extractTitleFromMessage(log.message);
-        if (title) counts[title] = (counts[title] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .map(([title, count]) => ({ title, count }))
-      .sort((a, b) => b.count - a.count);
-  },
-
-  // Get active users
-  getActiveUsers: async () => {
-    const logs = readLogs();
-    const counts: Record<string, number> = {};
-    logs.forEach(log => {
-      if (
-        log.message &&
-        log.message.startsWith("User data fetched for user:")
+        log.message.startsWith("User data fetched for user:") &&
+        log.timestamp &&
+        new Date(log.timestamp) > cutoff
       ) {
         const match = log.message.match(/user: ([a-zA-Z0-9]+)/);
         if (match) {
@@ -129,6 +122,8 @@ const analyticsService = {
       .sort((a, b) => a.date.localeCompare(b.date));
   },
 
+  // Error/statistics endpoints next
+
   // Get error stats
   getErrorStats: async () => {
     const logs = readLogs();
@@ -149,6 +144,62 @@ const analyticsService = {
       }
     });
     return { totalErrors, last24h, byType };
+  },
+
+  // Log endpoints next
+
+  // Get error logs (paginated)
+  getErrors: async (limit = 100) => {
+    const logs = readLogs();
+    return logs
+      .filter(log => log.level === "error")
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
+  },
+
+  // Get warning logs (paginated)
+  getWarnings: async (limit = 100) => {
+    const logs = readLogs();
+    return logs
+      .filter(log => log.level === "warn")
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
+  },
+
+  // Get info logs (paginated)
+  getInfo: async (limit = 100) => {
+    const logs = readLogs();
+    return logs
+      .filter(log => log.level === "info")
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
+  },
+
+  // Get all logs (paginated)
+  getLogs: async (limit = 100) => {
+    const logs = readLogs();
+    return logs
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
+  },
+
+  // Summary/dashboard last
+
+  // General dashboard summary (for admin)
+  getDashboardSummary: async () => {
+    // Aggregate key metrics for the dashboard
+    const [popularIngredients, popularGroceries, errorStats, activeUsers] = await Promise.all([
+      analyticsService.getPopularIngredients(),
+      analyticsService.getPopularGroceries(),      
+      analyticsService.getErrorStats(),
+      analyticsService.getActiveUsers("daily"),
+    ]);
+    return {
+      popularIngredients: popularIngredients.slice(0, 5),
+      popularGroceries: popularGroceries.slice(0, 5),      
+      errorStats,
+      activeUsers: activeUsers.length,
+    };
   },
 };
 
