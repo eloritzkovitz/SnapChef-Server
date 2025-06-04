@@ -1,37 +1,6 @@
-import fs from "fs";
-import path from "path";
+import { readLogs, extractNameFromMessage } from "./logUtils";
 
-// Helper to read and parse the log file
-function readLogs() {
-  const logPath = path.resolve(__dirname, "../../../logs/combined.log");
-  if (!fs.existsSync(logPath)) return [];
-  return fs.readFileSync(logPath, "utf-8")
-    .split("\n")
-    .filter(Boolean)
-    .map(line => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
-
-// Helper to extract name or title from the log message
-function extractNameFromMessage(message: string) {
-  const match = message.match(/"name":"([^"]+)"/);
-  return match ? match[1] : null;
-}
-
-function extractTitleFromMessage(message: string) {
-  const match = message.match(/"title":"([^"]+)"/);
-  return match ? match[1] : null;
-}
-
-const analyticsService = {
-  // Data/metrics endpoints first
-
+const analyticsService = { 
   // Get popular ingredients  
   getPopularIngredients: async () => {
     const logs = readLogs();
@@ -120,9 +89,7 @@ const analyticsService = {
     return Object.entries(trends)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  },
-
-  // Error/statistics endpoints next
+  },  
 
   // Get error stats
   getErrorStats: async () => {
@@ -144,9 +111,7 @@ const analyticsService = {
       }
     });
     return { totalErrors, last24h, byType };
-  },
-
-  // Log endpoints next
+  },  
 
   // Get error logs (paginated)
   getErrors: async (limit = 100) => {
@@ -182,9 +147,7 @@ const analyticsService = {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, limit);
   },
-
-  // Summary/dashboard last
-
+    
   // General dashboard summary (for admin)
   getDashboardSummary: async () => {
     // Aggregate key metrics for the dashboard
