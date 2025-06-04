@@ -1,39 +1,8 @@
-import fs from "fs";
-import path from "path";
+import { readLogs, extractNameFromMessage } from "./logUtils";
 
-// Helper to read and parse the log file
-function readLogs() {
-  const logPath = path.resolve(__dirname, "../../../logs/combined.log");
-  if (!fs.existsSync(logPath)) return [];
-  return fs.readFileSync(logPath, "utf-8")
-    .split("\n")
-    .filter(Boolean)
-    .map(line => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
-
-// Helper to extract name or title from the log message
-function extractNameFromMessage(message: string) {
-  const match = message.match(/"name":"([^"]+)"/);
-  return match ? match[1] : null;
-}
-
-// Helper to extract title from the log message
-function extractTitleFromMessage(message: string) {
-  const match = message.match(/"title":"([^"]+)"/);
-  return match ? match[1] : null;
-}
-
-const analyticsService = {
-
-    // Get popular ingredients  
-    getPopularIngredients: async () => {
+const metricsService = { 
+  // Get popular ingredients  
+  getPopularIngredients: async () => {
     const logs = readLogs();
     const counts: Record<string, number> = {};
     logs.forEach(log => {
@@ -67,34 +36,27 @@ const analyticsService = {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
   },
-
-  // Get popular recipes
-  getPopularRecipes: async () => {
+  
+  // Get active users (optionally by period)
+  getActiveUsers: async (period: string = "daily") => {
     const logs = readLogs();
+    const now = new Date();
+    let cutoff: Date;
+    if (period === "weekly") {
+      cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (period === "monthly") {
+      cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    } else {
+      // daily
+      cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
     const counts: Record<string, number> = {};
     logs.forEach(log => {
       if (
         log.message &&
-        (log.message.startsWith("Recipe generated with ingredients") ||
-         log.message.startsWith("Recipe added to cookbook"))
-      ) {
-        const title = extractTitleFromMessage(log.message);
-        if (title) counts[title] = (counts[title] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .map(([title, count]) => ({ title, count }))
-      .sort((a, b) => b.count - a.count);
-  },
-
-  // Get active users
-  getActiveUsers: async () => {
-    const logs = readLogs();
-    const counts: Record<string, number> = {};
-    logs.forEach(log => {
-      if (
-        log.message &&
-        log.message.startsWith("User data fetched for user:")
+        log.message.startsWith("User data fetched for user:") &&
+        log.timestamp &&
+        new Date(log.timestamp) > cutoff
       ) {
         const match = log.message.match(/user: ([a-zA-Z0-9]+)/);
         if (match) {
@@ -127,7 +89,7 @@ const analyticsService = {
     return Object.entries(trends)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  },
+  },  
 
   // Get error stats
   getErrorStats: async () => {
@@ -150,6 +112,23 @@ const analyticsService = {
     });
     return { totalErrors, last24h, byType };
   },
+    
+  // General dashboard summary (for admin)
+  getDashboardSummary: async () => {
+    // Aggregate key metrics for the dashboard
+    const [popularIngredients, popularGroceries, errorStats, activeUsers] = await Promise.all([
+      metricsService.getPopularIngredients(),
+      metricsService.getPopularGroceries(),      
+      metricsService.getErrorStats(),
+      metricsService.getActiveUsers("daily"),
+    ]);
+    return {
+      popularIngredients: popularIngredients.slice(0, 5),
+      popularGroceries: popularGroceries.slice(0, 5),      
+      errorStats,
+      activeUsers: activeUsers.length,
+    };
+  },
 };
 
-export default analyticsService;
+export default metricsService;
