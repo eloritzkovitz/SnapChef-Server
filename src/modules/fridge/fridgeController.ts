@@ -145,23 +145,20 @@ const updateFridgeItemImage = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const fridge = await fridgeModel.findById(fridgeId);
-    if (!fridge) {
-      logger.warn("Fridge not found when updating image: %s (user: %s)", fridgeId, userId);
-      res.status(404).json({ message: "Fridge not found" });
+    // Find the ingredient in the fridge
+    const result = await fridgeModel.findOneAndUpdate(
+      { _id: fridgeId, "ingredients.id": itemId },
+      { $set: { "ingredients.$.imageURL": imageURL } },
+      { new: true }
+    );
+
+    if (!result) {
+      logger.warn("Fridge or ingredient not found for image update: %s %s (user: %s)", fridgeId, itemId, userId);
+      res.status(404).json({ message: "Fridge or ingredient not found" });
       return;
     }
 
-    const ingredient = fridge.ingredients.find((ingredient) => ingredient.id === itemId);
-    if (!ingredient) {
-      logger.warn("Ingredient not found in fridge %s for image update: %s (user: %s)", fridgeId, itemId, userId);
-      res.status(404).json({ message: "Ingredient not found in this fridge" });
-      return;
-    }
-
-    ingredient.imageURL = imageURL;
-    fridge.markModified("ingredients");
-    await fridge.save();
+    const ingredient = result.ingredients.find((ing: any) => ing.id === itemId);
 
     logger.info("Ingredient image updated in fridge %s: %j (user: %s)", fridgeId, ingredient, userId);
     res.status(200).json({ message: "Ingredient image updated successfully", ingredient });
