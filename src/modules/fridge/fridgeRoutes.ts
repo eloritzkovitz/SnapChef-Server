@@ -131,6 +131,47 @@ router.put("/:fridgeId/items/:itemId", authenticate, fridgeController.updateFrid
 
 /**
  * @swagger
+ * /api/fridge/{fridgeId}/ingredients/{itemId}/image:
+ *   patch:
+ *     summary: Update the imageURL of a fridge ingredient
+ *     tags: [Fridge]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fridgeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Ingredient ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               imageURL:
+ *                 type: string
+ *                 example: https://example.com/image.jpg
+ *     responses:
+ *       200:
+ *         description: Ingredient image updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Fridge or ingredient not found
+ */
+router.patch("/:fridgeId/items/:itemId/image", authenticate, fridgeController.updateFridgeItemImage);
+
+/**
+ * @swagger
  * /api/fridge/{fridgeId}/items/reorder:
  *   patch:
  *     summary: Reorder items in a fridge
