@@ -133,6 +133,41 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Update an ingredient's image in the fridge
+const updateFridgeItemImage = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fridgeId, itemId } = req.params;
+    const { imageURL } = req.body;
+    const userId = getUserId(req);
+
+    if (!imageURL) {
+      res.status(400).json({ message: "imageURL is required" });
+      return;
+    }
+
+    // Find the ingredient in the fridge
+    const result = await fridgeModel.findOneAndUpdate(
+      { _id: fridgeId, "ingredients.id": itemId },
+      { $set: { "ingredients.$.imageURL": imageURL } },
+      { new: true }
+    );
+
+    if (!result) {
+      logger.warn("Fridge or ingredient not found for image update: %s %s (user: %s)", fridgeId, itemId, userId);
+      res.status(404).json({ message: "Fridge or ingredient not found" });
+      return;
+    }
+
+    const ingredient = result.ingredients.find((ing: any) => ing.id === itemId);
+
+    logger.info("Ingredient image updated in fridge %s: %j (user: %s)", fridgeId, ingredient, userId);
+    res.status(200).json({ message: "Ingredient image updated successfully", ingredient });
+  } catch (error) {
+    logger.error("Error updating ingredient image in fridge for user %s: %o", getUserId(req), error);
+    res.status(500).json({ message: "Error updating ingredient image", error });
+  }
+};
+
 // Reorder fridge items
 const reorderFridgeItems = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -230,6 +265,7 @@ export default {
   getFridgeContent,
   addFridgeItem,
   updateFridgeItem,
+  updateFridgeItemImage,
   reorderFridgeItems,
   deleteFridgeItem,  
 };

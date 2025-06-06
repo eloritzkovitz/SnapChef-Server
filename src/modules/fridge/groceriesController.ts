@@ -111,6 +111,41 @@ const updateGroceryItem = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+// Update grocery item image
+const updateGroceryItemImage = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fridgeId, itemId } = req.params;
+    const { imageURL } = req.body;
+    const userId = getUserId(req);
+
+    if (!imageURL) {
+      res.status(400).json({ message: "imageURL is required" });
+      return;
+    }
+
+    // Find grocery item in the fridge
+    const result = await fridgeModel.findOneAndUpdate(
+      { _id: fridgeId, "groceries.id": itemId },
+      { $set: { "groceries.$.imageURL": imageURL } },
+      { new: true }
+    );
+
+    if (!result) {
+      logger.warn("Fridge or grocery item not found for image update: %s %s (user: %s)", fridgeId, itemId, userId);
+      res.status(404).json({ message: "Fridge or grocery item not found" });
+      return;
+    }
+
+    const ingredient = result.groceries.find((ing: any) => ing.id === itemId);
+
+    logger.info("Grocery item image updated in fridge %s: %j (user: %s)", fridgeId, ingredient, userId);
+    res.status(200).json({ message: "Grocery item image updated successfully", ingredient });
+  } catch (error) {
+    logger.error("Error updating grocery item image in fridge for user %s: %o", getUserId(req), error);
+    res.status(500).json({ message: "Error updating grocery item image", error });
+  }
+};
+
 // Reorder groceries
 const reorderGroceries = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -205,6 +240,7 @@ export default {
   getGroceriesList,
   addGroceryItem,
   updateGroceryItem,
+  updateGroceryItemImage,
   reorderGroceries,
   deleteGroceryItem
 };
