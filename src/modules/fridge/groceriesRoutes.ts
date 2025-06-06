@@ -108,6 +108,47 @@ router.put("/:itemId", authenticate, groceriesController.updateGroceryItem);
 
 /**
  * @swagger
+ * /api/fridge/{fridgeId}/groceries/{itemId}/image:
+ *   patch:
+ *     summary: Update the imageURL of a grocery item
+ *     tags: [Groceries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fridgeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fridge ID
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Grocery Item ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               imageURL:
+ *                 type: string
+ *                 example: https://example.com/image.jpg
+ *     responses:
+ *       200:
+ *         description: Grocery item image updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Fridge or grocery item not found
+ */
+router.patch("/:itemId/image", authenticate, groceriesController.updateGroceryItemImage);
+
+/**
+ * @swagger
  * /api/fridge/{fridgeId}/groceries/reorder:
  *   patch:
  *     summary: Reorder groceries in a fridge
