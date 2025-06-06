@@ -123,23 +123,20 @@ const updateGroceryItemImage = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const fridge = await fridgeModel.findById(fridgeId);
-    if (!fridge) {
-      logger.warn("Fridge not found when updating grocery image: %s (user: %s)", fridgeId, userId);
-      res.status(404).json({ message: "Fridge not found" });
+    // Find grocery item in the fridge
+    const result = await fridgeModel.findOneAndUpdate(
+      { _id: fridgeId, "groceries.id": itemId },
+      { $set: { "groceries.$.imageURL": imageURL } },
+      { new: true }
+    );
+
+    if (!result) {
+      logger.warn("Fridge or grocery item not found for image update: %s %s (user: %s)", fridgeId, itemId, userId);
+      res.status(404).json({ message: "Fridge or grocery item not found" });
       return;
     }
 
-    const ingredient = fridge.groceries.find((ingredient) => ingredient.id === itemId);
-    if (!ingredient) {
-      logger.warn("Grocery item not found in fridge %s for image update: %s (user: %s)", fridgeId, itemId, userId);
-      res.status(404).json({ message: "Grocery item not found in this fridge" });
-      return;
-    }
-
-    ingredient.imageURL = imageURL;
-    fridge.markModified("groceries");
-    await fridge.save();
+    const ingredient = result.groceries.find((ing: any) => ing.id === itemId);
 
     logger.info("Grocery item image updated in fridge %s: %j (user: %s)", fridgeId, ingredient, userId);
     res.status(200).json({ message: "Grocery item image updated successfully", ingredient });
