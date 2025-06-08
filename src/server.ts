@@ -8,6 +8,7 @@ import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
+import serverRoutes from "./modules/server/serverRoutes";
 import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
 import friendsRoutes from "./modules/users/friendsRoutes";
@@ -52,6 +53,7 @@ app.use((req, res, next) => {
 });
 
 // Import and use the routes
+app.use("/", serverRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users/friends", friendsRoutes);
@@ -79,6 +81,7 @@ const options = {
       description: "API server for the SnapChef application",
     },
     tags: [
+      { name: "Server"},
       { name: "Auth" },
       { name: "Users" },
       { name: "Friends" },
@@ -96,6 +99,7 @@ const options = {
     ],
   },
   apis: [
+    "./src/modules/**/serverRoutes.ts",
     "./src/modules/**/authRoutes.ts",
     "./src/modules/**/userRoutes.ts",
     "./src/modules/**/friendsRoutes.ts",
