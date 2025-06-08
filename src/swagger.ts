@@ -1,0 +1,54 @@
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
+import dotenv from "dotenv";
+dotenv.config();
+
+// Define the OpenAPI specification options
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "SnapChef API",
+      version: "1.0.0",
+      description: "API server for the SnapChef application",
+    },
+    tags: [
+      { name: "Server" },
+      { name: "Auth" },
+      { name: "Users" },
+      { name: "Friends" },
+      { name: "Ingredients" },
+      { name: "Ingredient Recognition" },
+      { name: "Fridge" },
+      { name: "Groceries" },
+      { name: "Recipes" },
+      { name: "Cookbook" },
+      { name: "Shared Recipes" },
+      { name: "Notifications" },
+      { name: "Analytics" }
+    ],
+    servers: [
+      { url: "http://localhost:" + process.env.PORT }
+    ],
+  },
+  apis: [
+    "./src/modules/**/serverRoutes.ts",
+    "./src/modules/**/authRoutes.ts",
+    "./src/modules/**/userRoutes.ts",
+    "./src/modules/**/friendsRoutes.ts",
+    "./src/modules/**/ingredientRoutes.ts",
+    "./src/modules/**/recognitionRoutes.ts",
+    "./src/modules/**/fridgeRoutes.ts",
+    "./src/modules/**/groceriesRoutes.ts",
+    "./src/modules/**/recipeRoutes.ts",
+    "./src/modules/**/cookbookRoutes.ts",
+    "./src/modules/**/sharedRecipeRoutes.ts",
+    "./src/modules/**/notificationRoutes.ts",
+    "./src/modules/**/analyticsRoutes.ts",
+  ],
+};
+
+// Generate the OpenAPI specification
+const specs = swaggerJsDoc(options);
+
+export { specs, swaggerUI };
