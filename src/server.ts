@@ -6,8 +6,6 @@ import fs from "fs";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUI from "swagger-ui-express";
 import serverRoutes from "./modules/server/serverRoutes";
 import authRoutes from "./modules/users/authRoutes";
 import userRoutes from "./modules/users/userRoutes";
@@ -21,6 +19,7 @@ import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import sharedRecipeRoutes from "./modules/cookbook/sharedRecipeRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
+import { specs, swaggerUI } from "./swagger"; // <-- Use the new swagger.ts
 
 const app = express();
 
@@ -52,7 +51,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Import and use the routes
+// Serve the API routes
 app.use("/", serverRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -68,53 +67,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 // Serve the API documentation
-app.get("/about", (req, res) => {
-  res.send("This is the API for the SnapChef application.");
-});
-
-const options = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "SnapChef API",
-      version: "1.0.0",
-      description: "API server for the SnapChef application",
-    },
-    tags: [
-      { name: "Server"},
-      { name: "Auth" },
-      { name: "Users" },
-      { name: "Friends" },
-      { name: "Ingredients" },
-      { name: "Ingredient Recognition" },
-      { name: "Fridge" },
-      { name: "Groceries" },
-      { name: "Recipes" },
-      { name: "Cookbook" },
-      { name: "Shared Recipes" },
-      { name: "Notifications" },
-      { name: "Analytics" }
-    ],
-    servers: [{ url: "http://localhost:" + process.env.PORT, },
-    ],
-  },
-  apis: [
-    "./src/modules/**/serverRoutes.ts",
-    "./src/modules/**/authRoutes.ts",
-    "./src/modules/**/userRoutes.ts",
-    "./src/modules/**/friendsRoutes.ts",
-    "./src/modules/**/ingredientRoutes.ts",
-    "./src/modules/**/recognitionRoutes.ts",
-    "./src/modules/**/fridgeRoutes.ts",
-    "./src/modules/**/groceriesRoutes.ts",
-    "./src/modules/**/recipeRoutes.ts",    
-    "./src/modules/**/cookbookRoutes.ts",
-    "./src/modules/**/sharedRecipeRoutes.ts",
-    "./src/modules/**/notificationRoutes.ts",    
-    "./src/modules/**/analyticsRoutes.ts",
-  ],
-};
-const specs = swaggerJsDoc(options);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 // --- Socket.IO Setup ---
