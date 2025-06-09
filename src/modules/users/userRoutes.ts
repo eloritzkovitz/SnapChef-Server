@@ -377,8 +377,8 @@ router.delete("/me", authenticate, usersController.deleteUser);
  * @swagger
  * /api/users:
  *   get:
- *     summary: Search users by name
- *     description: Retrieve a list of users whose first or last name matches the query.
+ *     summary: Search users by name or email
+ *     description: Retrieve a list of users whose name or email matches the query.
  *     tags:
  *       - Users
  *     security:
@@ -417,7 +417,7 @@ router.delete("/me", authenticate, usersController.deleteUser);
  *       500:
  *         description: Server error
  */
-router.get("/", authenticate, usersController.findUsersByName);
+router.get("/", authenticate, usersController.findUsersByQuery);
 
 /**
  * @swagger
