@@ -250,7 +250,7 @@ const findUsersByQuery = async (req: Request, res: Response): Promise<void> => {
           { email: { $regex: query, $options: "i" } },
         ],
       })
-      .select("_id firstName lastName profilePicture");
+      .select("_id firstName lastName email profilePicture joinDate");
     logger.info("User search for query '%s' returned %d users", query, users.length);
     res.json(users);
   } catch (error) {
