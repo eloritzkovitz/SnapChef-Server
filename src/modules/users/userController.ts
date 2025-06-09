@@ -232,8 +232,8 @@ const deleteUser = async (
   }
 };
 
-// Find users by name
-const findUsersByName = async (req: Request, res: Response): Promise<void> => {
+// Find users by query
+const findUsersByQuery = async (req: Request, res: Response): Promise<void> => {
   const query = req.query.query as string;
   if (!query) {
     logger.warn("User search attempted without query parameter");
@@ -247,6 +247,7 @@ const findUsersByName = async (req: Request, res: Response): Promise<void> => {
         $or: [
           { firstName: { $regex: query, $options: "i" } },
           { lastName: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
         ],
       })
       .select("_id firstName lastName profilePicture");
@@ -269,7 +270,7 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await userModel.findById(userId).select("_id firstName lastName profilePicture bio headline location website");
+    const user = await userModel.findById(userId).select("_id firstName lastName email profilePicture joinDate");
     if (!user) {
       logger.warn("Public profile not found for user: %s", userId);
       res.status(404).json({ message: "User not found" });
@@ -344,7 +345,7 @@ export default {
   updatePreferences,
   updateFcmToken,
   deleteUser,
-  findUsersByName,
+  findUsersByQuery,
   getUserProfile,
   getUserStats,    
 };
