@@ -10,8 +10,8 @@ const startServer = async () => {
 
   if (isProduction) {
     const prop = {
-      key: fs.readFileSync("./client-key.pem"),
-      cert: fs.readFileSync("./client-cert.pem"),
+      key: fs.readFileSync("./myserver.key"),
+      cert: fs.readFileSync("./CSB.crt"),
     };
 
     https.createServer(prop, app).listen(port, () => {
