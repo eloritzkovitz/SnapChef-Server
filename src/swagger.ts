@@ -28,7 +28,8 @@ const options = {
       { name: "Analytics" }
     ],
     servers: [
-      { url: "http://localhost:" + process.env.PORT }
+      { url: "http://localhost:" + process.env.PORT, }, {url: "https://10.10.248.111", }, { url: "https://snapchef.cs.colman.ac.il", },
+      {url: "http://10.10.248.111", }
     ],
   },
   apis: [
