@@ -1,8 +1,8 @@
 module.exports = {
   apps : [{
-    name   : "SnapChef_Server",
+    name   : "app1",
     script : "./dist/app.js",
-    env_producation: {
+    env_production: {
       NODE_ENV: "production"
     }
   }]
