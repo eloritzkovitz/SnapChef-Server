@@ -19,7 +19,7 @@ import cookbookRoutes from "./modules/cookbook/cookbookRoutes";
 import sharedRecipeRoutes from "./modules/cookbook/sharedRecipeRoutes";
 import notificationRoutes from "./modules/notifications/notificationRoutes";
 import analyticsRoutes from "./modules/analytics/analyticsRoutes";
-import { specs, swaggerUI } from "./swagger"; // <-- Use the new swagger.ts
+import { specs, swaggerUI } from "./swagger";
 
 const app = express();
 
