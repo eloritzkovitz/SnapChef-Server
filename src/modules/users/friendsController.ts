@@ -4,6 +4,8 @@ import FriendRequest from "./FriendRequest";
 import logger from "../../utils/logger";
 import { sendFcmHttpV1 } from "../../utils/firebaseMessaging";
 import { getUserId } from "../../utils/requestHelpers";
+import { io } from "../../server";
+import { getUserStatsForSocket } from "./userUtils";
 
 // Get friends list for current user
 const getFriends = async (req: Request, res: Response): Promise<void> => {
@@ -229,6 +231,16 @@ const acceptFriendRequest = async (
     }
 
     res.json({ message: "Friend request accepted." });
+
+    // Emit user stats update to both users
+    const userStats = await getUserStatsForSocket(request.to.toString());
+    if (userStats) {
+      io.to(request.to.toString()).emit("userStatsUpdate", userStats);
+    }
+    const friendStats = await getUserStatsForSocket(request.from.toString());
+    if (friendStats) {
+      io.to(request.from.toString()).emit("userStatsUpdate", friendStats);
+    }
   } catch (error) {
     logger.error("Error accepting friend request: %o", error);
     res.status(500).json({ message: "Failed to accept friend request." });
@@ -270,6 +282,10 @@ const removeFriend = async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
     const { friendId } = req.params;
 
+    if (!userId) {
+      res.status(400).json({ message: "User ID is required." });
+      return;
+    }
     if (!friendId) {
       res.status(400).json({ message: "Friend ID is required." });
       return;
@@ -284,6 +300,16 @@ const removeFriend = async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(200).json({ message: "Friend removed successfully." });
+
+    // Emit user stats update to both users
+    const userStats = await getUserStatsForSocket(userId);
+    if (userStats) {
+      io.to(userId).emit("userStatsUpdate", userStats);
+    }
+    const friendStats = await getUserStatsForSocket(friendId);
+    if (friendStats) {
+      io.to(friendId).emit("userStatsUpdate", friendStats);
+    }
   } catch (error) {
     logger.error("Error removing friend: %o", error);
     res.status(500).json({ message: "Failed to remove friend." });
