@@ -9,6 +9,8 @@ import userModel from "../users/User";
 import { sendFcmHttpV1 } from "../../utils/firebaseMessaging";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
+import { io } from "../../server";
+import { getUserStatsForSocket } from "../users/userUtils";
 
 // Get a cookbook with all recipes
 const getCookbookContent = async (
@@ -57,9 +59,13 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
     const { cookbookId } = req.params;
     const recipeData = req.body;
     const userId = getUserId(req);
-
     const cookbook = await cookbookModel.findById(cookbookId);
 
+    if (!userId) {
+      logger.warn("Attempted to add recipe without userId");
+      res.status(400).json({ message: "User ID is required" });
+      return;
+    }
     if (!cookbook) {
       logger.warn(
         "Cookbook not found when adding recipe: %s (user: %s)",
@@ -130,6 +136,12 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
 
     // Save the updated cookbook
     await cookbook.save();
+
+    // Emit a real-time update to the user
+    const userStats = await getUserStatsForSocket(userId);
+    if (userStats) {
+      io.to(userId).emit("userStatsUpdate", userStats);
+    }
 
     logger.info(
       "Recipe added to cookbook %s: %j (user: %s)",
@@ -303,20 +315,34 @@ const regenerateRecipeImage = async (req: Request, res: Response): Promise<void>
 const toggleFavoriteRecipe = async (req: Request, res: Response): Promise<void> => {
   const { cookbookId, recipeId } = req.params;
   const userId = getUserId(req);
-
   const cookbook = await cookbookModel.findById(cookbookId);
+
+  if (!userId) {
+    logger.warn("Attempted to toggle favorite without userId");
+    res.status(400).json({ message: "User ID is required" });
+    return;
+  }
   if (!cookbook) {
     res.status(404).json({ message: "Cookbook not found" });
     return;
   }
+  
   const recipe = cookbook.recipes.find((r: any) => r._id.toString() === recipeId);
   if (!recipe) {
     res.status(404).json({ message: "Recipe not found" });
     return;
   }
+  
   recipe.isFavorite = !recipe.isFavorite;
   cookbook.markModified("recipes");
   await cookbook.save();
+  
+  // Emit a real-time update to the user
+  const userStats = await getUserStatsForSocket(userId);
+  if (userStats) {
+    io.to(userId).emit("userStatsUpdate", userStats);
+  }
+
   res.status(200).json({ message: "Recipe favorite status toggled", favorite: recipe.isFavorite });
 };
 
@@ -514,6 +540,11 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
 
     const cookbook = await cookbookModel.findById(cookbookId);
 
+    if (!userId) {
+      logger.warn("Attempted to remove recipe without userId");
+      res.status(400).json({ message: "User ID is required" });
+      return;
+    }
     if (!cookbook) {
       logger.warn(
         "Cookbook not found when removing recipe: %s (user: %s)",
@@ -534,6 +565,12 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
       (recipe) => recipe._id !== recipeId
     );
     await cookbook.save();
+
+    // Emit a real-time update to the user
+    const userStats = await getUserStatsForSocket(userId);
+    if (userStats) {
+      io.to(userId).emit("userStatsUpdate", userStats);
+    }
 
     logger.info(
       "Recipe removed from cookbook %s: %j (user: %s)",

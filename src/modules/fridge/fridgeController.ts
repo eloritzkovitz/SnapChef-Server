@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import fridgeModel from "./Fridge";
 import logger from "../../utils/logger";
 import { getUserId } from "../../utils/requestHelpers";
+import { io } from "../../server";
+import { getUserStatsForSocket } from "../users/userUtils";
 
 // Create a new fridge
 const createFridge = async (req: Request, res: Response): Promise<void> => {
@@ -55,11 +57,21 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
 
     // Validate input
+    if (!userId) {
+      logger.warn("Attempted to add fridge item without userId");
+      res.status(400).json({ message: "User ID is required" });
+      return;
+    }
+    if (!fridgeId) {
+      logger.warn("Attempted to add fridge item without fridgeId (user: %s)", userId);
+      res.status(400).json({ message: "Fridge ID is required" });
+      return;
+    }    
     if (!id || !name || !category || !quantity) {
       logger.warn("Attempted to add fridge item with missing fields (fridgeId: %s, user: %s)", fridgeId, userId);
       res.status(400).json({ message: "ID, name, category, and quantity are required" });
       return;
-    }
+    }    
 
     // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
@@ -82,6 +94,12 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
     fridge.ingredients.push(newIngredient);
     await fridge.save();
 
+    // Emit an event to update the user's stats in real-time
+    const userStats = await getUserStatsForSocket(userId);
+    if (userStats) {
+      io.to(userId).emit("userStatsUpdate", userStats);
+    }
+
     logger.info("Ingredient added to fridge %s: %j (user: %s)", fridgeId, newIngredient, userId);
     res.status(201).json({ message: "Ingredient added successfully", ingredient: newIngredient });
   } catch (error) {
@@ -98,6 +116,16 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
 
     // Validate input
+    if (!userId) {
+      logger.warn("Attempted to update fridge item without userId");
+      res.status(400).json({ message: "User ID is required" });
+      return;
+    }
+    if (!fridgeId) {
+      logger.warn("Attempted to update fridge item without fridgeId (user: %s)", userId);
+      res.status(400).json({ message: "Fridge ID is required" });
+      return;
+    }
     if (quantity === undefined || quantity === null || isNaN(quantity)) {
       logger.warn("Invalid quantity for update in fridge %s, item %s (user: %s)", fridgeId, itemId, userId);
       res.status(400).json({ message: "Valid quantity is required" });
@@ -124,6 +152,12 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
     ingredient.quantity = quantity;
     fridge.markModified("ingredients");
     await fridge.save();
+
+    // Emit an event to update the user's stats in real-time
+    const userStats = await getUserStatsForSocket(userId);
+    if (userStats) {
+      io.to(userId).emit("userStatsUpdate", userStats);
+    }
 
     logger.info("Ingredient updated in fridge %s: %j (user: %s)", fridgeId, ingredient, userId);
     res.status(200).json({ message: "Ingredient updated successfully", ingredient });
@@ -231,9 +265,14 @@ const deleteFridgeItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { fridgeId, itemId } = req.params;
     const userId = getUserId(req);
-
-    // Find the fridge
     const fridge = await fridgeModel.findById(fridgeId);
+
+    // Validate input
+    if (!userId) {
+      logger.warn("Attempted to delete fridge item without userId");
+      res.status(400).json({ message: "User ID is required" });
+      return;
+    }
     if (!fridge) {
       logger.warn("Fridge not found when deleting item: %s (user: %s)", fridgeId, userId);
       res.status(404).json({ message: "Fridge not found" });
@@ -251,6 +290,12 @@ const deleteFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Remove the ingredient from the fridge's ingredients array
     fridge.ingredients = fridge.ingredients.filter((ingredient) => ingredient.id !== itemId);
     await fridge.save();
+
+    // Emit an event to update the user's stats in real-time
+    const userStats = await getUserStatsForSocket(userId);
+    if (userStats) {
+      io.to(userId).emit("userStatsUpdate", userStats);
+    }
 
     logger.info("Ingredient deleted from fridge %s: %j (user: %s)", fridgeId, ingredientToDelete, userId);
     res.status(200).json({ message: "Ingredient deleted successfully" });
