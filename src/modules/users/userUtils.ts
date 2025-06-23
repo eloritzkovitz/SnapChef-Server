@@ -45,3 +45,49 @@ export async function createUserWithDefaults({
 
   return user;
 }
+
+// Get user statistics for the socket connection
+export async function getUserStatsForSocket(userId: string) {
+  const user = await userModel.findById(userId);
+  if (!user) return null;
+
+  const fridge = await fridgeModel.findById(user.fridgeId);
+  const cookbook = await cookbookModel.findById(user.cookbookId);
+
+  // Count unique ingredients in the fridge
+  const ingredientNames = fridge?.ingredients?.map((i: any) => i.name.toLowerCase()) || [];
+  const uniqueIngredients = Array.from(new Set(ingredientNames));
+  const ingredientCount = uniqueIngredients.length;
+
+  // Count recipes and their ingredients
+  const recipeCount = cookbook?.recipes?.length || 0;
+
+  // Count total ingredients across all recipes
+  const ingredientFrequency: Record<string, number> = {};
+  cookbook?.recipes?.forEach((recipe: any) => {
+    (recipe.ingredients || []).forEach((ing: any) => {
+      const name = ing.name.toLowerCase();
+      ingredientFrequency[name] = (ingredientFrequency[name] || 0) + 1;
+    });
+  });
+  
+  // Get the most popular ingredients
+  const mostPopularIngredients = Object.entries(ingredientFrequency)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, count]) => ({ name, count }));
+
+  // Count favorite recipes
+  const favoriteRecipeCount = cookbook?.recipes?.filter((r: any) => r.isFavorite)?.length || 0;
+  
+  // Count friends
+  const friendCount = user.friends?.length || 0;
+
+  return {
+    ingredientCount,
+    recipeCount,
+    mostPopularIngredients,
+    favoriteRecipeCount,
+    friendCount,
+  };
+}
