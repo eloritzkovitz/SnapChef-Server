@@ -36,7 +36,7 @@ const router = Router();
 router.get("/info", (req, res) => {
   res.json({
     name: "SnapChef API",
-    version: "1.0.0",
+    version: "1.0.1",
     description: "API server for the SnapChef application",
     environment: process.env.NODE_ENV || "development"
   });
