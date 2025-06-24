@@ -232,6 +232,10 @@ const acceptFriendRequest = async (
 
     res.json({ message: "Friend request accepted." });
 
+    // Emit friend update to both users
+    io.to(request.to.toString()).emit("friendUpdate", { userId: request.to.toString() });
+    io.to(request.from.toString()).emit("friendUpdate", { userId: request.from.toString() });
+
     // Emit user stats update to both users
     const userStats = await getUserStatsForSocket(request.to.toString());
     if (userStats) {
@@ -300,6 +304,10 @@ const removeFriend = async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(200).json({ message: "Friend removed successfully." });
+
+    // Emit friend update to both users
+    io.to(userId).emit("friendUpdate", { userId });
+    io.to(friendId).emit("friendUpdate", { userId: friendId });
 
     // Emit user stats update to both users
     const userStats = await getUserStatsForSocket(userId);
