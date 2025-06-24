@@ -233,17 +233,27 @@ const acceptFriendRequest = async (
     res.json({ message: "Friend request accepted." });
 
     // Emit friend update to both users
-    io.to(request.to.toString()).emit("friendUpdate", { userId: request.to.toString() });
-    io.to(request.from.toString()).emit("friendUpdate", { userId: request.from.toString() });
+    io.to(request.to.toString()).emit("friendUpdate", {
+      userId: request.to.toString(),
+    });
+    io.to(request.from.toString()).emit("friendUpdate", {
+      userId: request.from.toString(),
+    });
 
     // Emit user stats update to both users
     const userStats = await getUserStatsForSocket(request.to.toString());
     if (userStats) {
-      io.to(request.to.toString()).emit("userStatsUpdate", userStats);
+      io.to(request.to.toString()).emit("userStatsUpdate", {
+        userId: request.to.toString(),
+        ...userStats,
+      });
     }
     const friendStats = await getUserStatsForSocket(request.from.toString());
     if (friendStats) {
-      io.to(request.from.toString()).emit("userStatsUpdate", friendStats);
+      io.to(request.from.toString()).emit("userStatsUpdate", {
+        userId: request.from.toString(),
+        ...friendStats,
+      });
     }
   } catch (error) {
     logger.error("Error accepting friend request: %o", error);
@@ -312,11 +322,14 @@ const removeFriend = async (req: Request, res: Response): Promise<void> => {
     // Emit user stats update to both users
     const userStats = await getUserStatsForSocket(userId);
     if (userStats) {
-      io.to(userId).emit("userStatsUpdate", userStats);
+      io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
     }
     const friendStats = await getUserStatsForSocket(friendId);
     if (friendStats) {
-      io.to(friendId).emit("userStatsUpdate", friendStats);
+      io.to(friendId).emit("userStatsUpdate", {
+        userId: friendId,
+        ...friendStats,
+      });
     }
   } catch (error) {
     logger.error("Error removing friend: %o", error);
