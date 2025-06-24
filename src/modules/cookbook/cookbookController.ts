@@ -140,7 +140,7 @@ const addRecipe = async (req: Request, res: Response): Promise<void> => {
     // Emit a real-time update to the user
     const userStats = await getUserStatsForSocket(userId);
     if (userStats) {
-      io.to(userId).emit("userStatsUpdate", userStats);
+      io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
     }
 
     logger.info(
@@ -340,7 +340,7 @@ const toggleFavoriteRecipe = async (req: Request, res: Response): Promise<void> 
   // Emit a real-time update to the user
   const userStats = await getUserStatsForSocket(userId);
   if (userStats) {
-    io.to(userId).emit("userStatsUpdate", userStats);
+    io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
   }
 
   res.status(200).json({ message: "Recipe favorite status toggled", favorite: recipe.isFavorite });
@@ -569,7 +569,7 @@ const removeRecipe = async (req: Request, res: Response): Promise<void> => {
     // Emit a real-time update to the user
     const userStats = await getUserStatsForSocket(userId);
     if (userStats) {
-      io.to(userId).emit("userStatsUpdate", userStats);
+      io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
     }
 
     logger.info(

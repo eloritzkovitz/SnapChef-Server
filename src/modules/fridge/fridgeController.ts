@@ -97,7 +97,7 @@ const addFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Emit an event to update the user's stats in real-time
     const userStats = await getUserStatsForSocket(userId);
     if (userStats) {
-      io.to(userId).emit("userStatsUpdate", userStats);
+      io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
     }
 
     logger.info("Ingredient added to fridge %s: %j (user: %s)", fridgeId, newIngredient, userId);
@@ -156,7 +156,7 @@ const updateFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Emit an event to update the user's stats in real-time
     const userStats = await getUserStatsForSocket(userId);
     if (userStats) {
-      io.to(userId).emit("userStatsUpdate", userStats);
+      io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
     }
 
     logger.info("Ingredient updated in fridge %s: %j (user: %s)", fridgeId, ingredient, userId);
@@ -294,7 +294,7 @@ const deleteFridgeItem = async (req: Request, res: Response): Promise<void> => {
     // Emit an event to update the user's stats in real-time
     const userStats = await getUserStatsForSocket(userId);
     if (userStats) {
-      io.to(userId).emit("userStatsUpdate", userStats);
+      io.to(userId).emit("userStatsUpdate", { userId, ...userStats });
     }
 
     logger.info("Ingredient deleted from fridge %s: %j (user: %s)", fridgeId, ingredientToDelete, userId);
