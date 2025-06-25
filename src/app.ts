@@ -1,4 +1,4 @@
-import initApp from "./server";
+import initApp, { attachSocket } from "./server";
 import https from "https"
 import fs from "fs"
 
@@ -14,7 +14,10 @@ const startServer = async () => {
       cert: fs.readFileSync("./CSB.crt"),
     };
 
-    https.createServer(prop, app).listen(port, () => {
+    const server = https.createServer(prop, app);
+    attachSocket(server);
+
+    server.listen(port, () => {
       console.log(`Server running in production mode at https://localhost:${port}`);
     });
   } else {

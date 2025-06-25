@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import path from "path";
 import fs from "fs";
-import http from "http";
+import https from "https";
 import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
 import serverRoutes from "./modules/server/serverRoutes";
@@ -70,30 +70,29 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 // --- Socket.IO Setup ---
-const server = http.createServer(app);
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-
-// Socket.IO connection handler
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  // Join a room for their userId
-  socket.on("join", (userId: string) => {
-    socket.join(userId);
-    console.log(`User ${userId} joined their notification room`);
+let io: SocketIOServer | undefined;
+export function attachSocket(server: https.Server) {
+  io = new SocketIOServer(server, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
-});
+  io.on("connection", (socket) => {
+    console.log("A user connected:", socket.id);
 
-// Export io for use in controllers
+    socket.on("join", (userId: string) => {
+      socket.join(userId);
+      console.log(`User ${userId} joined their notification room`);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected:", socket.id);
+    });
+  });
+}
+
 export { io };
 
 // --- App Initialization ---
