@@ -1,5 +1,6 @@
 import { Router } from "express";
 import mongoose from "mongoose";
+const pkg = require("../package.json");
 
 const router = Router();
 
@@ -35,9 +36,9 @@ const router = Router();
  */
 router.get("/info", (req, res) => {
   res.json({
-    name: "SnapChef API",
-    version: "1.0.1",
-    description: "API server for the SnapChef application",
+    name: pkg.name,
+    version: pkg.version,
+    description: pkg.description,
     environment: process.env.NODE_ENV || "development"
   });
 });

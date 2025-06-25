@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "copyfiles .env_dev .env && nodemon ./src/app.ts",
-    "prod": "cp .env_prod .env && node ./dist/app.js",
+    "prod": "cp .env_prod .env && node ./dist/src/app.js",
     "start": "copyfiles .env_dev .env && tsc && node ./dist/app.js",
     "test": "copyfiles .env_test jest --coverage --runInBand"
   },
