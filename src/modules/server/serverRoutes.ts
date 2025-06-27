@@ -1,6 +1,15 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-const pkg = require("../package.json");
+import fs from "fs";
+import path from "path";
+
+// Load package.json to get app information
+const pkg = JSON.parse(
+  fs.readFileSync(
+    path.resolve(__dirname, "../../../package.json"),
+    "utf-8"
+  )
+);
 
 const router = Router();
 

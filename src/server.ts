@@ -70,7 +70,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 // --- Socket.IO Setup ---
-let io: SocketIOServer | undefined;
+let io: SocketIOServer;
 export function attachSocket(server: https.Server) {
   io = new SocketIOServer(server, {
     cors: {
