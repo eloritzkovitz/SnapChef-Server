@@ -11,11 +11,10 @@ client-cert.pem
 client-key.pem
 client.csr
 
-
-
 #node
 node_modules/
 dist/
+uploads/
 logs/
 
 # Symbolication related
