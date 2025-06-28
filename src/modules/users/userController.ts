@@ -78,7 +78,7 @@ const updateUser = async (
           path.basename(user.profilePicture)
         );
         logger.info("Deleting old profile picture for user %s: %s", userId, filePath);
-        deleteFile(filePath);
+        await deleteFile(filePath);
       }
 
       // Update the profile picture based on the input
@@ -214,7 +214,7 @@ const deleteUser = async (
         path.basename(user.profilePicture)
       );
       logger.info("Deleting profile picture for user %s: %s", userId, filePath);
-      deleteFile(filePath);
+      await deleteFile(filePath);
     }
 
     // Delete the user's fridge and cookbook
