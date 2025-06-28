@@ -1,16 +1,26 @@
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 dotenv.config();
+
+// Load package.json for dynamic version/info
+const pkg = JSON.parse(
+  fs.readFileSync(
+    path.resolve(__dirname, "../package.json"),
+    "utf-8"
+  )
+);
 
 // Define the OpenAPI specification options
 const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "SnapChef API",
-      version: "1.0.2",
-      description: "API server for the SnapChef application",
+      title: pkg.name || "SnapChef API",
+      version: pkg.version || "1.0.0",
+      description: pkg.description || "API server for the SnapChef application",
     },
     tags: [
       { name: "Server" },
