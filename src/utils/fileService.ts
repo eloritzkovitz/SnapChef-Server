@@ -11,7 +11,7 @@ export const saveBase64Image = (base64Data: string, filename: string): string =>
     // Remove data URL prefix if present
     const matches = base64Data.match(/^data:image\/\w+;base64,(.+)$/);
     const imageBuffer = Buffer.from(matches ? matches[1] : base64Data, 'base64');
-    const uploadsDir = path.join(__dirname, '../../dist/uploads');
+    const uploadsDir = path.join(__dirname, '../../uploads');
     if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
     }
