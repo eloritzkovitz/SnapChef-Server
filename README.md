@@ -11,6 +11,7 @@ The SnapChef API Server is a Node.js backend that powers the SnapChef applicatio
 - **User Preferences:** Manages dietary, allergy, and notification preferences.
 - **Friend System:** Friend requests, notifications, and recipe sharing between users.
 - **Push Notifications:** Sends real-time notifications via Firebase Cloud Messaging (FCM).
+- **Real-Time Updates:** Provides live user stats and notifications using WebSockets (Socket.IO).
 - **Security:** Password hashing, email verification, and abuse prevention.
 - **Admin & Logging:** Logs key actions and supports admin operations.
 
