@@ -9,7 +9,7 @@ const options = {
     openapi: "3.0.0",
     info: {
       title: "SnapChef API",
-      version: "1.0.1",
+      version: "1.0.2",
       description: "API server for the SnapChef application",
     },
     tags: [
