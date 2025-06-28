@@ -26,13 +26,13 @@ const app = express();
 dotenv.config();
 
 // Ensure the uploads directory exists
-const uploadDir = path.join(__dirname, "../dist/uploads");
+const uploadDir = path.join(__dirname, "../../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Serve static files from the "uploads" directory
-app.use('/uploads', express.static(path.join(__dirname, '../dist/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 // Connect to MongoDB
 const db = mongoose.connection;
