@@ -40,7 +40,7 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
 
 interface UpdateUserRequestBody {
   firstName?: string;
-  lastName?: string;  
+  lastName?: string;
   password?: string;
   profilePicture?: string;
 }
@@ -72,12 +72,16 @@ const updateUser = async (
       // Check if the old profile picture needs to be deleted
       if (user.profilePicture && user.profilePicture !== "") {
         // Construct the absolute path to the file
-        const filePath = path.resolve(
-          __dirname,
-          "../../uploads",
+        const filePath = path.join(
+          process.cwd(),
+          "uploads",
           path.basename(user.profilePicture)
         );
-        logger.info("Deleting old profile picture for user %s: %s", userId, filePath);
+        logger.info(
+          "Deleting old profile picture for user %s: %s",
+          userId,
+          filePath
+        );
         await deleteFile(filePath);
       }
 
@@ -116,7 +120,10 @@ const updatePreferences = async (
     // Find the user
     const user = await userModel.findById(userId);
     if (!user) {
-      logger.warn("Attempted to update preferences for non-existent user: %s", userId);
+      logger.warn(
+        "Attempted to update preferences for non-existent user: %s",
+        userId
+      );
       res.status(404).json({ message: "User not found" });
       return;
     }
@@ -134,18 +141,54 @@ const updatePreferences = async (
     const updatedPreferences: Preferences = {
       allergies: preferences.allergies ?? user.preferences?.allergies ?? [],
       dietaryPreferences: {
-        vegan: preferences.dietaryPreferences?.vegan ?? user.preferences?.dietaryPreferences?.vegan ?? false,
-        vegetarian: preferences.dietaryPreferences?.vegetarian ?? user.preferences?.dietaryPreferences?.vegetarian ?? false,
-        pescatarian: preferences.dietaryPreferences?.pescatarian ?? user.preferences?.dietaryPreferences?.pescatarian ?? false,
-        carnivore: preferences.dietaryPreferences?.carnivore ?? user.preferences?.dietaryPreferences?.carnivore ?? false,
-        ketogenic: preferences.dietaryPreferences?.ketogenic ?? user.preferences?.dietaryPreferences?.ketogenic ?? false,
-        paleo: preferences.dietaryPreferences?.paleo ?? user.preferences?.dietaryPreferences?.paleo ?? false,
-        lowCarb: preferences.dietaryPreferences?.lowCarb ?? user.preferences?.dietaryPreferences?.lowCarb ?? false,
-        lowFat: preferences.dietaryPreferences?.lowFat ?? user.preferences?.dietaryPreferences?.lowFat ?? false,
-        glutenFree: preferences.dietaryPreferences?.glutenFree ?? user.preferences?.dietaryPreferences?.glutenFree ?? false,
-        dairyFree: preferences.dietaryPreferences?.dairyFree ?? user.preferences?.dietaryPreferences?.dairyFree ?? false,
-        kosher: preferences.dietaryPreferences?.kosher ?? user.preferences?.dietaryPreferences?.kosher ?? false,
-        halal: preferences.dietaryPreferences?.halal ?? user.preferences?.dietaryPreferences?.halal ?? false,
+        vegan:
+          preferences.dietaryPreferences?.vegan ??
+          user.preferences?.dietaryPreferences?.vegan ??
+          false,
+        vegetarian:
+          preferences.dietaryPreferences?.vegetarian ??
+          user.preferences?.dietaryPreferences?.vegetarian ??
+          false,
+        pescatarian:
+          preferences.dietaryPreferences?.pescatarian ??
+          user.preferences?.dietaryPreferences?.pescatarian ??
+          false,
+        carnivore:
+          preferences.dietaryPreferences?.carnivore ??
+          user.preferences?.dietaryPreferences?.carnivore ??
+          false,
+        ketogenic:
+          preferences.dietaryPreferences?.ketogenic ??
+          user.preferences?.dietaryPreferences?.ketogenic ??
+          false,
+        paleo:
+          preferences.dietaryPreferences?.paleo ??
+          user.preferences?.dietaryPreferences?.paleo ??
+          false,
+        lowCarb:
+          preferences.dietaryPreferences?.lowCarb ??
+          user.preferences?.dietaryPreferences?.lowCarb ??
+          false,
+        lowFat:
+          preferences.dietaryPreferences?.lowFat ??
+          user.preferences?.dietaryPreferences?.lowFat ??
+          false,
+        glutenFree:
+          preferences.dietaryPreferences?.glutenFree ??
+          user.preferences?.dietaryPreferences?.glutenFree ??
+          false,
+        dairyFree:
+          preferences.dietaryPreferences?.dairyFree ??
+          user.preferences?.dietaryPreferences?.dairyFree ??
+          false,
+        kosher:
+          preferences.dietaryPreferences?.kosher ??
+          user.preferences?.dietaryPreferences?.kosher ??
+          false,
+        halal:
+          preferences.dietaryPreferences?.halal ??
+          user.preferences?.dietaryPreferences?.halal ??
+          false,
       },
       notificationPreferences: updatedNotificationPreferences,
     };
@@ -157,9 +200,18 @@ const updatePreferences = async (
     await user.save();
 
     logger.info("Preferences updated for user: %s", userId);
-    res.status(200).json({ message: "Preferences updated successfully", preferences: user.preferences });
+    res
+      .status(200)
+      .json({
+        message: "Preferences updated successfully",
+        preferences: user.preferences,
+      });
   } catch (error) {
-    logger.error("Error updating preferences for user %s: %o", req.params.id, error);
+    logger.error(
+      "Error updating preferences for user %s: %o",
+      req.params.id,
+      error
+    );
     res.status(500).json({ message: "Error updating preferences", error });
   }
 };
@@ -186,7 +238,11 @@ const updateFcmToken = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({ message: "FCM token updated successfully" });
   } catch (error) {
-    logger.error("Error updating FCM token for user %s: %o", getUserId(req), error);
+    logger.error(
+      "Error updating FCM token for user %s: %o",
+      getUserId(req),
+      error
+    );
     res.status(500).json({ message: "Error updating FCM token", error });
   }
 };
@@ -251,7 +307,11 @@ const findUsersByQuery = async (req: Request, res: Response): Promise<void> => {
         ],
       })
       .select("_id firstName lastName email profilePicture joinDate");
-    logger.info("User search for query '%s' returned %d users", query, users.length);
+    logger.info(
+      "User search for query '%s' returned %d users",
+      query,
+      users.length
+    );
     res.json(users);
   } catch (error) {
     logger.error("Error fetching users by name: %o", error);
@@ -270,7 +330,9 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await userModel.findById(userId).select("_id firstName lastName email profilePicture joinDate");
+    const user = await userModel
+      .findById(userId)
+      .select("_id firstName lastName email profilePicture joinDate");
     if (!user) {
       logger.warn("Public profile not found for user: %s", userId);
       res.status(404).json({ message: "User not found" });
@@ -279,7 +341,11 @@ const getUserProfile = async (req: Request, res: Response): Promise<void> => {
     logger.info("Public profile fetched for user: %s", userId);
     res.json(user);
   } catch (error) {
-    logger.error("Error fetching public profile for user %s: %o", req.params.id, error);
+    logger.error(
+      "Error fetching public profile for user %s: %o",
+      req.params.id,
+      error
+    );
     res.status(500).json({ message: "Error fetching user profile", error });
   }
 };
@@ -297,18 +363,22 @@ const getUserStats = async (req: Request, res: Response): Promise<void> => {
 
     res.json(stats);
   } catch (error) {
-    logger.error("Error fetching user stats for user %s: %o", req.params.id, error);
+    logger.error(
+      "Error fetching user stats for user %s: %o",
+      req.params.id,
+      error
+    );
     res.status(500).json({ message: "Error fetching user stats", error });
   }
 };
 
-export default {  
-  getUserData,  
+export default {
+  getUserData,
   updateUser,
   updatePreferences,
   updateFcmToken,
   deleteUser,
   findUsersByQuery,
   getUserProfile,
-  getUserStats,    
+  getUserStats,
 };
