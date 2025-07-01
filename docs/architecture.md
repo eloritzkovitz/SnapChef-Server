@@ -12,15 +12,16 @@ The SnapChef API server follows a **modular MVC (Model-View-Controller)** patter
 
 ## Main Layers & Responsibilities
 
-| Layer         | Responsibilities                                                                 |
-|---------------|----------------------------------------------------------------------------------|
-| **Models**    | Mongoose schemas and models for MongoDB collections.                             |
-| **Controllers**| Handle business logic, validation, and API responses.                           |
-| **Routes**    | Define API endpoints and route requests to controllers.                          |
-| **Services/Utils** | Utility functions, integrations (e.g., email, FCM, Google APIs), helpers.   |
-| **Jobs**      | Scheduled scripts for maintenance tasks (e.g., cleanup of unverified users).     |
-| **Middleware**| Authentication, error handling, and request preprocessing.                       |
-| **Config**    | Environment variables and configuration files.                                   |
+| Layer            | Responsibilities                                                                 |
+|------------------|----------------------------------------------------------------------------------|
+| **Models**       | Mongoose schemas and models for MongoDB collections.                             |
+| **Controllers**  | Handle business logic, validation, and API responses.                            |
+| **Routes**       | Define API endpoints and route requests to controllers.                          |
+| **Utils**        | Utility functions, integrations (e.g., email, FCM, Google APIs), helpers.        |
+| **Jobs**         | Scheduled scripts for maintenance tasks (e.g., cleanup of unverified users).     |
+| **Middleware**   | Authentication, error handling, and request preprocessing.                       |
+| **Config**       | Environment variables and configuration files.                                   |
+| **WebSockets**   | Real-time updates and notifications for clients.                                 |
 
 ## Data Flow
 
@@ -29,6 +30,7 @@ The SnapChef API server follows a **modular MVC (Model-View-Controller)** patter
 3. **Controller** processes the request, interacts with **Models** and **Services/Utils** as needed.
 4. **Model** handles database operations (CRUD) via Mongoose.
 5. **Controller** sends a response back to the client.
+6. **WebSocket events** are emitted by controllers to push real-time updates (e.g., notifications, stats) to connected clients.
 
 ## Third-party Integrations
 
@@ -38,6 +40,7 @@ The SnapChef API server follows a **modular MVC (Model-View-Controller)** patter
 - **Firebase Cloud Messaging (FCM):** Push notifications.
 - **MongoDB:** Main database for persistent storage.
 - **Nodemailer:** Email sending for OTP and password reset.
+- **Socket.IO:** Real-time communication between server and clients.
 
 ## State Management
 
