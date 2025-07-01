@@ -18,7 +18,7 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: pkg.name || "SnapChef API",
+      title: "SnapChef API",
       version: pkg.version || "1.0.0",
       description: pkg.description || "API server for the SnapChef application",
     },
