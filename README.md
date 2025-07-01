@@ -23,6 +23,8 @@ The SnapChef API Server is a Node.js backend that powers the SnapChef applicatio
   - `utils/` — Utility functions and services
   - `jobs/` — Scheduled/maintenance scripts (e.g., cleanup)
 - `dist/` — Compiled output
+- `uploads/` — Stores all user-uploaded files
+- `logs/` — Contains server log files
 - `package.json` — Dependencies and scripts
 - `tsconfig.json` — TypeScript configuration
 
