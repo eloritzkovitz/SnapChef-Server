@@ -1,5 +1,5 @@
 {
-  "name": "snapchef-api",
+  "name": "snapchef-server",
   "version": "1.0.2",
   "description": "",
   "main": "app.js",
