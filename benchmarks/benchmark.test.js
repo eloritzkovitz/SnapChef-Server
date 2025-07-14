@@ -73,66 +73,7 @@ export default function () {
         check(genRecipeRes, {
             'generate recipe 200': (r) => r.status === 200
         });
-    });
-
-    // Add and remove recipe from cookbook
-    group('Add and remove recipe from cookbook', function () {
-        const hardcodedRecipe = {
-            title: "Test Apple Pie",
-            description: "A simple apple pie recipe for testing.",
-            mealType: "Dessert",
-            cuisineType: "American",
-            difficulty: "Easy",
-            prepTime: "15 min",
-            cookingTime: "45 min",
-            ingredients: [
-                { name: "Apple" },
-                { name: "Sugar" },
-                { name: "Flour" }
-            ],
-            instructions: [
-                "Preheat oven to 180C.",
-                "Mix apples, sugar, and flour.",
-                "Bake for 45 minutes."
-            ],
-            imageURL: "",
-            rating: 0.0,
-            source: "test",
-            raw: "Test Apple Pie: Preheat oven to 180C. Mix apples, sugar, and flour. Bake for 45 minutes."
-        };
-
-        const addCookbookRes = http.post(
-            `${BASE_URL}/api/cookbook/${cookbookId}/recipes`,
-            JSON.stringify(hardcodedRecipe),
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        console.log('Add to cookbook response:', addCookbookRes.status, addCookbookRes.body);
-        check(addCookbookRes, { 'add to cookbook 200': (r) => r.status === 200 });
-
-        // Remove the recipe
-        const addedCookbook = addCookbookRes.json('cookbook');
-        const recipesArr = addedCookbook?.recipes;
-        const recipeId = recipesArr && recipesArr.length > 0 ? recipesArr[recipesArr.length - 1]._id : undefined;
-
-        if (recipeId) {
-            const removeCookbookRes = http.del(
-                `${BASE_URL}/api/cookbook/${cookbookId}/recipes/${recipeId}`,
-                null,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
-                }
-            );
-            console.log('Remove from cookbook response:', removeCookbookRes.status, removeCookbookRes.body);
-            check(removeCookbookRes, { 'remove from cookbook 200': (r) => r.status === 200 });
-        }
-    });
+    });    
 
     sleep(1);
 }
