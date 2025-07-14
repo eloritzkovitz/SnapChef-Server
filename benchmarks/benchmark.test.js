@@ -1,12 +1,15 @@
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
 
+// Define options for the test
 export let options = {
     vus: 1,
     iterations: 1,
 };
 
-const BASE_URL = 'http://localhost:3000';
+// Base URL and test user credentials
+// Use environment variable for BASE_URL or default to a local server
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 const TEST_USER = {
     email: 'test@example.com',
     password: 'Aa123456'
