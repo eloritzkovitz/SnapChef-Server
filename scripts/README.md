@@ -45,3 +45,5 @@ It helps free up disk space, remove unnecessary files, and keep the system logs 
    ```bash
    sudo ./cleanup.sh
    ```
+  
+**Note:** This script is scheduled with `cron` for regular automated maintenance.
