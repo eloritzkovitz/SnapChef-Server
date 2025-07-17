@@ -26,8 +26,14 @@ The SnapChef API Server is a Node.js backend that powers the SnapChef applicatio
 - `data/` — Data files (ingredients and barcodes)
 - `uploads/` — Stores all user-uploaded files
 - `logs/` — Contains server log files
+- `tests/` — Unit tests
+- `benchmarks/` — Load tests
+- `scripts/` — Additional scripts
 - `package.json` — Dependencies and scripts
 - `tsconfig.json` — TypeScript configuration
+
+## Deployment
+The server was deployed to a remote production server, using SSH and HTTPS for security. The server uses PM2 for process management, monitoring and reliability. Routine cleanup scripts are run weekly through cron jobs to free up disk space and ensure maintenance.
 
 ## Documentation
 
@@ -38,3 +44,10 @@ The SnapChef API Server is a Node.js backend that powers the SnapChef applicatio
 
 - The server supports cross-platform development (Windows, Mac, Linux).
 - Environment variables are used for configuration and API keys.
+- For troubleshooting and logs, check the `logs/` directory.
+
+## Authors
+- [Elor Itzkovitz](https://github.com/Elor-Itz)
+- [Yuval Lavi](https://github.com/Yuvalya101)
+- [Adi Cahal](https://github.com/Adica6)
+- [Yonatan Cohen](https://github.com/yonatan62862)
