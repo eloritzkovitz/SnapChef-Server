@@ -1,6 +1,6 @@
-# SnapChef API Server
+# SnapChef Backend Server
 
-The SnapChef API Server is a Node.js backend that powers the SnapChef application, providing secure REST API endpoints for user management, ingredient and recipe recognition, image uploads, and more.
+The SnapChef Backend Server is a Node.js backend that powers the SnapChef application, providing secure REST API endpoints for user management, ingredient and recipe recognition, image uploads, and more.
 
 ## Features
 
