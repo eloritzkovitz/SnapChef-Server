@@ -4,15 +4,24 @@
     "esModuleInterop": true,
     "target": "es6",
     "moduleResolution": "node",
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "dist",
     "strict": true,
     "resolveJsonModule": true,
-    "types": ["jest", "node"]
+    "baseUrl": "./src",
+    "types": [
+      "jest",
+      "node"
+    ]
   },
-  "lib": ["es2015"],
+  "lib": [
+    "es2015"
+  ],
   "include": [
-    "src",
-    "tests"
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }
