@@ -40,3 +40,4 @@ app.*.map.json
 .history
 .svn/
 snapchef-main-firebase-adminsdk-fbsvc-ba187c4cfb.json
+snapchefapp-*.json

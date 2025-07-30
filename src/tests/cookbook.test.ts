@@ -1,176 +1,321 @@
-import express, { Request, Response } from "express";
+// src/tests/cookbook.test.ts
 import request from "supertest";
-import cookbookController from "../modules/cookbook/cookbookController";
+import express from "express";
+import cookbookRoutes from "../modules/cookbook/cookbookRoutes";
+import cookbookModel from "../modules/cookbook/Cookbook";
+import SharedRecipe from "../modules/cookbook/SharedRecipe";
+import userModel from "../modules/users/User";
+import { sendFcmHttpV1 } from "../utils/firebaseMessaging";
+import { parseRecipeString } from "../modules/recipes/recipeParser";
+import { generateImageForRecipe } from "../modules/recipes/imageGeneration";
+import { getField } from "../modules/cookbook/cookbookUtils";
+import logger from "../utils/logger";
+import { getUserId } from "../utils/requestHelpers";
+import { io } from "../server";
+import { getUserStatsForSocket } from "../modules/users/userUtils";
 
-
-const app = express();
-app.use(express.json());
-
-app.post("/cookbooks/:cookbookId/recipes", cookbookController.addRecipe);
-app.put("/cookbooks/:cookbookId/recipes/:recipeId", cookbookController.updateRecipe);
-app.delete("/cookbooks/:cookbookId/recipes/:recipeId", cookbookController.removeRecipe);
-app.get("/cookbooks/:cookbookId", cookbookController.getCookbookContent);
-
-jest.mock("../modules/cookbook/Cookbook", () => ({
-  __esModule: true,
-  default: {
-    findById: jest.fn(),
+// --- Mocks ---
+jest.mock("../middlewares/auth", () => ({
+  authenticate: jest.fn((req: any, res: any, next: any) => {
+    req.user = { id: "user123" };
+    next();
+  }),
+}));
+jest.mock("../modules/cookbook/Cookbook");
+jest.mock("../modules/cookbook/SharedRecipe");
+jest.mock("../modules/users/User");
+jest.mock("../utils/firebaseMessaging");
+jest.mock("../modules/recipes/recipeParser");
+jest.mock("../modules/recipes/imageGeneration");
+jest.mock("../modules/cookbook/cookbookUtils");
+jest.mock("../utils/logger");
+jest.mock("../utils/requestHelpers");
+jest.mock("../modules/users/userUtils");
+jest.mock("../server", () => ({
+  io: {
+    to: jest.fn().mockReturnThis(),
+    emit: jest.fn(),
   },
 }));
 
-import cookbookModel from "../modules/cookbook/Cookbook";
+const app = express();
+app.use(express.json());
+app.use("/api/cookbook", cookbookRoutes);
 
-const mockSave = jest.fn();
-const mockCookbook = {
-  _id: "cookbook123",
-  recipes: [],
-  save: mockSave,
-};
-
-jest.setTimeout(10000); 
+beforeEach(() => {
+  jest.clearAllMocks();
+  (getUserId as jest.Mock).mockReturnValue("user123");
+});
 
 describe("Cookbook Controller", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockSave.mockResolvedValue(undefined); 
+  describe("GET /api/cookbook/:cookbookId", () => {
+    it("200 → returns cookbook when found", async () => {
+      const mockCb = { _id: "cb1", recipes: [] };
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(mockCb);
+
+      const res = await request(app).get("/api/cookbook/cb1");
+      expect(res.status).toBe(200);
+      expect(res.body.cookbook).toEqual(mockCb);
+    });
+
+    it("404 → when cookbook not found", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+
+      const res = await request(app).get("/api/cookbook/nonexistent");
+      expect(res.status).toBe(404);
+    });
+
+    it("500 → on database error", async () => {
+      (cookbookModel.findById as jest.Mock).mockRejectedValue(new Error("dbfail"));
+
+      const res = await request(app).get("/api/cookbook/cbX");
+      expect(res.status).toBe(500);
+    });
   });
 
-  it("should add a recipe to the cookbook", async () => {
-    (cookbookModel.findById as jest.Mock).mockResolvedValue(mockCookbook);
+  describe("POST /api/cookbook/:cookbookId/recipes", () => {
+    const basePath = "/api/cookbook/cb1/recipes";
 
-    const res = await request(app)
-      .post("/cookbooks/cookbook123/recipes")
-      .send({ title: "Pizza", ingredients: ["cheese"] });
+    it("400 → missing userId", async () => {
+      (getUserId as jest.Mock).mockReturnValue(null);
+      const res = await request(app).post(basePath).send({ raw: "anything" });
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(200);
-    expect(mockSave).toHaveBeenCalled();
-    expect(res.body.message).toBe("Recipe added to cookbook");
+    it("404 → cookbook not found", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).post(basePath).send({ title: "Foo" });
+      expect(res.status).toBe(404);
+    });
+
+    it("400 → missing title", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [], save: jest.fn() });
+      (parseRecipeString as jest.Mock).mockReturnValue({ title: "" });
+      const res = await request(app).post(basePath).send({ raw: "no title here" });
+      expect(res.status).toBe(400);
+    });
+
+    it("200 → adds recipe and emits stats update", async () => {
+      const saveMock = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({
+        recipes: [],
+        save: saveMock,
+      });
+      (parseRecipeString as jest.Mock).mockReturnValue({ title: "Parsed", description: "", prepTime: 5, cookingTime: 10 });
+      (getField as jest.Mock).mockImplementation((obj, key, fallback) => obj[key] ?? fallback);
+      (getUserStatsForSocket as jest.Mock).mockResolvedValue({ count: 1 });
+
+      const payload = {
+        title: "Front",
+        description: "Desc",
+        prepTime: 2,
+        cookingTime: 3,
+        ingredients: ["a"],
+        instructions: ["b"],
+      };
+      const res = await request(app).post(basePath).send(payload);
+      expect(res.status).toBe(200);
+      expect(saveMock).toHaveBeenCalled();
+      expect(io.to).toHaveBeenCalledWith("user123");
+    });
   });
 
-  it("should return 404 if cookbook not found", async () => {
-    (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+  describe("PUT /api/cookbook/:cookbookId/recipes/:recipeId", () => {
+    const path = "/api/cookbook/cb1/recipes/r1";
 
-    const res = await request(app)
-      .post("/cookbooks/cookbook123/recipes")
-      .send({ title: "Pizza" });
+    it("404 → cookbook missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).put(path).send({ title: "X" });
+      expect(res.status).toBe(404);
+    });
 
-    expect(res.status).toBe(404);
-    expect(res.body.message).toBe("Cookbook not found");
+    it("404 → recipe not in cookbook", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [], save: jest.fn() });
+      const res = await request(app).put(path).send({ title: "X" });
+      expect(res.status).toBe(404);
+    });
+
+    it("200 → updates recipe", async () => {
+      const rec = { _id: "r1", title: "Old" };
+      const saveMock = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({
+        recipes: [rec],
+        save: saveMock,
+      });
+      const res = await request(app).put(path).send({ title: "New" });
+      expect(res.status).toBe(200);
+      expect(res.body.recipe.title).toBe("New");
+    });
   });
 
-  it("should update a recipe in the cookbook", async () => {
-    const mockRecipe = { _id: "recipe123", title: "Old Recipe" };
-    const updatedData = { title: "Updated Recipe" };
+  describe("PATCH /api/cookbook/:cookbookId/recipes/:recipeId/image", () => {
+    const path = "/api/cookbook/cb1/recipes/r1/image";
 
-    const cookbookWithRecipe = {
-      ...mockCookbook,
-      recipes: [mockRecipe],
-      save: mockSave,
-    };
+    it("404 → cookbook missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(404);
+    });
 
-    (cookbookModel.findById as jest.Mock).mockResolvedValue(cookbookWithRecipe);
+    it("404 → recipe missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [] });
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(404);
+    });
 
-    const res = await request(app)
-      .put("/cookbooks/cookbook123/recipes/recipe123")
-      .send(updatedData);
+    it("500 → image generation failure", async () => {
+      const rec = { _id: "r1", title: "T", ingredients: [] };
+      const saveMock = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [rec], markModified: jest.fn(), save: saveMock });
+      (generateImageForRecipe as jest.Mock).mockResolvedValue(null);
 
-    expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Recipe updated in cookbook");
-    expect(res.body.recipe.title).toBe("Updated Recipe");
-    expect(mockSave).toHaveBeenCalled();
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(500);
+    });
+
+    it("200 → regenerates image", async () => {
+      const rec = { _id: "r1", title: "T", ingredients: [] };
+      const saveMock = jest.fn();
+      const markModified = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [rec], markModified, save: saveMock });
+      (generateImageForRecipe as jest.Mock).mockResolvedValue("url");
+
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(200);
+      expect(res.body.imageUrl).toBe("url");
+      expect(markModified).toHaveBeenCalledWith("recipes");
+    });
   });
 
-  it("should remove a recipe from the cookbook", async () => {
-    const cookbookWithRecipe = {
-      ...mockCookbook,
-      recipes: [
-        { _id: "recipe123", title: "To Be Removed" },
-        { _id: "recipe999", title: "Keep Me" },
-      ],
-      save: mockSave,
-    };
+  describe("PATCH /api/cookbook/:cookbookId/recipes/:recipeId/favorite", () => {
+    const path = "/api/cookbook/cb1/recipes/r1/favorite";
 
-    (cookbookModel.findById as jest.Mock).mockResolvedValue(cookbookWithRecipe);
+    it("400 → missing userId", async () => {
+      (getUserId as jest.Mock).mockReturnValue(null);
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(400);
+    });
 
-    const res = await request(app)
-      .delete("/cookbooks/cookbook123/recipes/recipe123");
+    it("404 → cookbook missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(404);
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Recipe removed from cookbook");
-    expect(cookbookWithRecipe.recipes).toHaveLength(1);
-    expect(cookbookWithRecipe.recipes[0]._id).toBe("recipe999");
-    expect(mockSave).toHaveBeenCalled();
+    it("404 → recipe missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [], save: jest.fn() });
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(404);
+    });
+
+    it("200 → toggles favorite and emits stats", async () => {
+      const rec: any = { _id: "r1", isFavorite: false };
+      const saveMock = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [rec], markModified: jest.fn(), save: saveMock });
+      (getUserStatsForSocket as jest.Mock).mockResolvedValue({ foo: 42 });
+
+      const res = await request(app).patch(path).send({});
+      expect(res.status).toBe(200);
+      expect(res.body.favorite).toBe(true);
+      expect(io.to).toHaveBeenCalledWith("user123");
+    });
   });
 
-  it("should return cookbook content", async () => {
-    (cookbookModel.findById as jest.Mock).mockResolvedValue(mockCookbook);
+  describe("POST /api/cookbook/:cookbookId/recipes/:recipeId/share", () => {
+    const path = "/api/cookbook/cb1/recipes/r1/share";
 
-    const res = await request(app).get("/cookbooks/cookbook123");
+    it("400 → missing friendId", async () => {
+      const res = await request(app).post(path).send({});
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.cookbook._id).toBe("cookbook123");
+    it("404 → user not found", async () => {
+      (userModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).post(path).send({ friendId: "f1" });
+      expect(res.status).toBe(404);
+    });
+
+    it("403 → not friends", async () => {
+      (userModel.findById as jest.Mock).mockResolvedValue({ friends: [] });
+      const res = await request(app).post(path).send({ friendId: "f1" });
+      expect(res.status).toBe(403);
+    });
+
+    it("404 → cookbook or recipe missing", async () => {
+      (userModel.findById as jest.Mock).mockResolvedValue({ friends: ["f1"], firstName: "A" });
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res1 = await request(app).post(path).send({ friendId: "f1" });
+      expect(res1.status).toBe(404);
+
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [] });
+      const res2 = await request(app).post(path).send({ friendId: "f1" });
+      expect(res2.status).toBe(404);
+    });
+
+    it("200 → shares and notifies", async () => {
+      (userModel.findById as jest.Mock)
+        .mockResolvedValueOnce({ friends: ["f1"], firstName: "Me" })   // sender
+        .mockResolvedValueOnce({ fcmToken: "tok", preferences: { notificationPreferences: { recipeShares: true } } }); // friend
+
+      const recipe = { _id: "r1", title: "T" };
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [recipe] });
+      (SharedRecipe.create as jest.Mock).mockResolvedValue({});
+
+      const res = await request(app).post(path).send({ friendId: "f1" });
+      expect(res.status).toBe(200);
+      expect(sendFcmHttpV1).toHaveBeenCalled();
+    });
   });
 
-  it("should return 404 if recipe to update is not found", async () => {
-    const cookbookWithRecipe = {
-      ...mockCookbook,
-      recipes: [{ _id: "some-other-id", title: "Not Target" }],
-      save: mockSave,
-    };
+  describe("PATCH /api/cookbook/:cookbookId/recipes/reorder", () => {
+    const path = "/api/cookbook/cb1/recipes/reorder";
 
-    (cookbookModel.findById as jest.Mock).mockResolvedValue(cookbookWithRecipe);
+    it("400 → invalid array", async () => {
+      const res = await request(app).patch(path).send({ orderedRecipeIds: "not array" });
+      expect(res.status).toBe(400);
+    });
 
-    const res = await request(app)
-      .put("/cookbooks/cookbook123/recipes/recipe123")
-      .send({ title: "Won't update" });
+    it("404 → cookbook missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).patch(path).send({ orderedRecipeIds: ["a"] });
+      expect(res.status).toBe(404);
+    });
 
-    expect(res.status).toBe(404);
-    expect(res.body.message).toBe("Recipe not found in cookbook");
+    it("200 → reorders recipes", async () => {
+      const recs = [{ _id: "a" }, { _id: "b" }];
+      const saveMock = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: recs, save: saveMock });
+      const res = await request(app).patch(path).send({ orderedRecipeIds: ["b", "a"] });
+      expect(res.status).toBe(200);
+      expect(res.body.cookbook.recipes.map((r: any) => r._id)).toEqual(["b", "a"]);
+    });
   });
 
-  it("should handle error when adding a recipe (500)", async () => {
-    (cookbookModel.findById as jest.Mock).mockRejectedValue(new Error("DB error"));
+  describe("DELETE /api/cookbook/:cookbookId/recipes/:recipeId", () => {
+    const path = "/api/cookbook/cb1/recipes/r1";
 
-    const res = await request(app)
-      .post("/cookbooks/cookbook123/recipes")
-      .send({ title: "Fail" });
+    it("400 → missing userId", async () => {
+      (getUserId as jest.Mock).mockReturnValue(null);
+      const res = await request(app).delete(path);
+      expect(res.status).toBe(400);
+    });
 
-    expect(res.status).toBe(500);
-    expect(res.body.message).toBe("Failed to add recipe to cookbook");
-    expect(res.body.error).toBe("DB error");
+    it("404 → cookbook missing", async () => {
+      (cookbookModel.findById as jest.Mock).mockResolvedValue(null);
+      const res = await request(app).delete(path);
+      expect(res.status).toBe(404);
+    });
+
+    it("200 → removes recipe and emits stats", async () => {
+      const rec = { _id: "r1", title: "X" };
+      const saveMock = jest.fn();
+      (cookbookModel.findById as jest.Mock).mockResolvedValue({ recipes: [rec], save: saveMock });
+      (getUserStatsForSocket as jest.Mock).mockResolvedValue({ foo: 1 });
+
+      const res = await request(app).delete(path);
+      expect(res.status).toBe(200);
+      expect(saveMock).toHaveBeenCalled();
+      expect(io.to).toHaveBeenCalledWith("user123");
+    });
   });
-
-  it("should handle error when updating a recipe (500)", async () => {
-    (cookbookModel.findById as jest.Mock).mockRejectedValue(new Error("DB error"));
-
-    const res = await request(app)
-      .put("/cookbooks/cookbook123/recipes/recipe123")
-      .send({ title: "Should fail" });
-
-    expect(res.status).toBe(500);
-    expect(res.body.message).toBe("Failed to update recipe in cookbook");
-  });
-
-  it("should handle error when removing a recipe (500)", async () => {
-    (cookbookModel.findById as jest.Mock).mockRejectedValue(new Error("Remove fail"));
-
-    const res = await request(app)
-      .delete("/cookbooks/cookbook123/recipes/recipe123");
-
-    expect(res.status).toBe(500);
-    expect(res.body.message).toBe("Failed to remove recipe from cookbook");
-    expect(res.body.error).toBe("Remove fail");
-  });
-
-  it("should handle error when fetching cookbook content (500)", async () => {
-    (cookbookModel.findById as jest.Mock).mockRejectedValue(new Error("Fetch fail"));
-
-    const res = await request(app).get("/cookbooks/cookbook123");
-
-    expect(res.status).toBe(500);
-    expect(res.body.message).toBe("Failed to fetch cookbook");
-    expect(res.body.error).toBe("Fetch fail");
-  });
-
-
 });
